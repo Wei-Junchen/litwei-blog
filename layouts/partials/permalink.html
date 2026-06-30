@@ -1,0 +1,9 @@
+{{- $page := . -}}
+{{- $sections := slice "tech" "game" "life" -}}
+{{- if in $sections $page.Section -}}
+  {{- $path := replaceRE (printf "^/%s" $page.Section) "" $page.RelPermalink -}}
+  {{- if eq $path "" -}}{{- $path = "/" -}}{{- end -}}
+  {{- printf "https://%s.litwei.fun%s" $page.Section $path -}}
+{{- else -}}
+  {{- $page.RelPermalink -}}
+{{- end -}}

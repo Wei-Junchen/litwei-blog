@@ -19,15 +19,15 @@ timeZone = 'Asia/Shanghai'
 [menus]
   [[menus.main]]
     name = 'Tech'
-    pageRef = '/tech'
+    url = 'https://tech.litwei.fun/'
     weight = 10
   [[menus.main]]
     name = 'Game'
-    pageRef = '/game'
+    url = 'https://game.litwei.fun/'
     weight = 20
   [[menus.main]]
     name = 'Life'
-    pageRef = '/life'
+    url = 'https://life.litwei.fun/'
     weight = 30
   [[menus.main]]
     name = 'Posts'

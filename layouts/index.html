@@ -9,7 +9,7 @@
   <h2>Latest</h2>
   {{ range first 10 (where site.RegularPages "Section" "in" (slice "posts" "tech" "game" "life")) }}
     <article class="post-item">
-      <a href="{{ .RelPermalink }}"><h3>{{ .Title }}</h3></a>
+      <a href="{{ partial "permalink.html" . }}"><h3>{{ .Title }}</h3></a>
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
       <p>{{ .Summary | plainify | truncate 160 }}</p>
     </article>

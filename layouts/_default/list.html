@@ -7,7 +7,7 @@
 <section class="post-list">
   {{ range .Pages }}
     <article class="post-item">
-      <a href="{{ .RelPermalink }}"><h2>{{ .Title }}</h2></a>
+      <a href="{{ partial "permalink.html" . }}"><h2>{{ .Title }}</h2></a>
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
       <p>{{ .Summary | plainify | truncate 180 }}</p>
     </article>
