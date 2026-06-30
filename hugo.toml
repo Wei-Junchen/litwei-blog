@@ -27,7 +27,3 @@ timeZone = 'Asia/Shanghai'
     name = 'Life'
     url = 'https://life.litwei.fun/'
     weight = 30
-  [[menus.main]]
-    name = 'Posts'
-    pageRef = '/posts'
-    weight = 40
