@@ -13,8 +13,6 @@ timeZone = 'Asia/Shanghai'
 
 [params.formspree]
   endpoint = 'https://formspree.io/f/YOUR_FORM_ID'
-  captchaQuestion = '2 + 3 = ?'
-  captchaAnswer = '5'
 
 [menus]
   [[menus.main]]
