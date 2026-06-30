@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-cn" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Comment Admin | Litwei Blog</title>
+  <link rel="stylesheet" href="/css/site.css">
+  <link rel="stylesheet" href="/css/comments.css?v=20260701-4">
+  <style>
+    .admin-toolbar { display: grid; gap: .75rem; margin-bottom: 1rem; }
+    .admin-toolbar input { width: 100%; box-sizing: border-box; border: 1px solid #1f7a4d; background: #020403; color: #d8ffe8; padding: .7rem; border-radius: 6px; font: inherit; }
+    .admin-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .admin-danger { border-color: #ff5f5f; color: #ff8a8a; }
+    .admin-danger:hover { background: #ff5f5f; color: #160202; box-shadow: 0 0 18px rgba(255, 95, 95, .65); }
+    .admin-comment-extra { margin-top: .5rem; color: #7bcfa4; font-size: .82rem; word-break: break-all; }
+    .admin-comment-extra a { word-break: break-all; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">Litwei Blog</a>
+    <nav class="nav" aria-label="admin navigation">
+      <a href="/">Home</a>
+    </nav>
+  </header>
+
+  <main class="site-main">
+    <section class="terminal-card">
+      <h1>Comment Admin</h1>
+      <p class="comment-hint">输入站长 token 后，可以列出和删除本地 comments.jsonl 中的评论。</p>
+      <div class="admin-toolbar">
+        <input id="admin-token" type="password" placeholder="COMMENT_ADMIN_TOKEN">
+        <div class="admin-actions">
+          <button class="comment-submit" id="save-token" type="button">save token</button>
+          <button class="comment-submit" id="reload-comments" type="button">reload</button>
+          <button class="comment-submit admin-danger" id="clear-token" type="button">clear token</button>
+        </div>
+      </div>
+      <p class="comment-hint" id="admin-status">not loaded.</p>
+    </section>
+
+    <section class="comment-terminal">
+      <div class="comment-title">--- all comments ---</div>
+      <div class="comment-list" id="admin-comments"></div>
+    </section>
+  </main>
+
+  <script src="/js/admin-comments.js?v=20260701-4" defer></script>
+</body>
+</html>
