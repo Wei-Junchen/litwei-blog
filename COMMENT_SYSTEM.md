@@ -1,14 +1,57 @@
-# 本地评论系统
+# 本地评论系统 + Turnstile 发送认证
 
-本站评论不再使用 Formspree。评论通过 VPS 本地轻量 Python 服务保存到本地文件。
+本站评论不使用 Formspree。评论通过 VPS 本地轻量 Python 服务保存到本地文件，并使用 Cloudflare Turnstile 防止脚本刷屏。
 
 ## 行为
 
 - `comment` 必填。
 - `nickname/name` 可选，不填就是匿名。
 - `email` 可选，只保存在本地 JSONL 文件中，不在页面公开展示。
-- 页面会读取并展示同一篇文章下的公开评论内容。
-- 无数据库、无外部评论服务、无 Node.js。
+- 页面读取并展示同一篇文章下的公开评论内容。
+- 提交评论必须通过 Cloudflare Turnstile 校验。
+- 无数据库、无 Node.js、无外部评论服务；只有 Turnstile 用作人机校验。
+
+## Hugo 配置
+
+`hugo.toml` 里配置公开的 site key：
+
+```toml
+[params.comments]
+  endpoint = '/api/comments'
+  turnstileSiteKey = '你的 Turnstile Site Key'
+```
+
+当前占位值 `1x00000000000000000000AA` 是 Cloudflare 测试 site key，上线应替换为真实 key。
+
+## VPS Secret 配置
+
+Cloudflare 后台创建 Turnstile widget：
+
+- Widget type: Managed
+- Domains: `litwei.fun`, `tech.litwei.fun`, `game.litwei.fun`, `life.litwei.fun`
+
+然后在 VPS 修改：
+
+```bash
+sudo systemctl edit litwei-comments
+```
+
+写入真实 secret：
+
+```ini
+[Service]
+Environment=TURNSTILE_SECRET_KEY=你的_Turnstile_Secret_Key
+```
+
+重启：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart litwei-comments
+sudo systemctl status litwei-comments
+```
+
+不要把真实 secret 写进 GitHub。
 
 ## 本地存储
 
@@ -20,21 +63,9 @@
 
 每行是一条 JSON，包含页面、昵称、邮箱、评论、IP、User-Agent 和时间戳。
 
-## VPS 部署
-
-```bash
-sudo mkdir -p /opt/litwei-blog-comment-server /var/lib/litwei-blog
-sudo cp server/comment_server.py /opt/litwei-blog-comment-server/comment_server.py
-sudo cp server/litwei-comments.service /etc/systemd/system/litwei-comments.service
-sudo chown -R www-data:www-data /var/lib/litwei-blog
-sudo systemctl daemon-reload
-sudo systemctl enable --now litwei-comments
-sudo systemctl status litwei-comments
-```
-
 ## Nginx
 
-在 `litwei.fun`、`tech.litwei.fun`、`game.litwei.fun`、`life.litwei.fun` 的 HTTPS server block 里加入：
+HTTPS server block 中保留：
 
 ```nginx
 location /api/comments {
@@ -46,18 +77,4 @@ location /api/comments {
     proxy_set_header X-Forwarded-Proto $scheme;
     client_max_body_size 16k;
 }
-```
-
-然后：
-
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-## Hugo 配置
-
-```toml
-[params.comments]
-  endpoint = '/api/comments'
 ```

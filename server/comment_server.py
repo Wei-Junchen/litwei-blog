@@ -15,6 +15,7 @@ import json
 import os
 import time
 import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -26,6 +27,8 @@ COMMENTS_FILE = Path(os.environ.get("COMMENTS_FILE", "/var/lib/litwei-blog/comme
 MAX_BODY_BYTES = int(os.environ.get("COMMENT_MAX_BODY_BYTES", "8192"))
 RATE_LIMIT_SECONDS = int(os.environ.get("COMMENT_RATE_LIMIT_SECONDS", "20"))
 MAX_PUBLIC_COMMENTS = int(os.environ.get("COMMENT_MAX_PUBLIC_COMMENTS", "100"))
+TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
 _last_submit_by_ip: dict[str, float] = {}
 
@@ -39,6 +42,36 @@ def clamp(value: str, limit: int) -> str:
     if len(value) > limit:
         return value[:limit]
     return value
+
+
+def verify_turnstile(token: str, ip: str) -> tuple[bool, str]:
+    """Verify Cloudflare Turnstile token when TURNSTILE_SECRET_KEY is configured."""
+    if not TURNSTILE_SECRET_KEY:
+        return True, "disabled"
+    if not token.strip():
+        return False, "missing turnstile token"
+
+    payload = urllib.parse.urlencode({
+        "secret": TURNSTILE_SECRET_KEY,
+        "response": token,
+        "remoteip": ip,
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        TURNSTILE_VERIFY_URL,
+        data=payload,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:  # noqa: BLE001 - keep service resilient and log concise error
+        return False, f"turnstile verify failed: {exc}"
+
+    if result.get("success") is True:
+        return True, "ok"
+    errors = ",".join(result.get("error-codes", []) or []) or "unknown"
+    return False, f"turnstile rejected: {errors}"
 
 
 def public_comment(row: dict[str, Any]) -> dict[str, Any]:
@@ -151,6 +184,14 @@ class Handler(BaseHTTPRequestHandler):
         # Honeypot: pretend success, but do not store.
         if str(form.get("_gotcha", "")).strip():
             self.send_json(200, {"ok": True})
+            return
+
+        turnstile_ok, turnstile_message = verify_turnstile(
+            str(form.get("cf-turnstile-response") or ""),
+            ip,
+        )
+        if not turnstile_ok:
+            self.send_json(403, {"ok": False, "error": turnstile_message})
             return
 
         comment = clamp(str(form.get("comment") or ""), 3000)

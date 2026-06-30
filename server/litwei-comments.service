@@ -10,6 +10,8 @@ Environment=COMMENT_HOST=127.0.0.1
 Environment=COMMENT_PORT=8787
 Environment=COMMENTS_FILE=/var/lib/litwei-blog/comments.jsonl
 Environment=COMMENT_RATE_LIMIT_SECONDS=20
+# Set this on VPS after creating a Cloudflare Turnstile widget. Do not commit the real secret.
+# Environment=TURNSTILE_SECRET_KEY=your_real_turnstile_secret_key
 WorkingDirectory=/opt/litwei-blog-comment-server
 ExecStart=/usr/bin/python3 /opt/litwei-blog-comment-server/comment_server.py
 Restart=always
