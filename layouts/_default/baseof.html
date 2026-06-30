@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{ .Description | default site.Params.description }}">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} | {{ site.Title }}{{ end }}</title>
-  <link rel="stylesheet" href="{{ "css/site.css?v=20260702-1" | relURL }}">
+  <link rel="stylesheet" href="{{ "css/site.css?v=20260702-3" | relURL }}">
 </head>
 <body>
   <header class="site-header">
@@ -33,9 +33,10 @@
   </main>
 
   <footer class="site-footer">
-    <span>© {{ now.Format "2006" }} {{ site.Params.author }}</span>
+    <span class="site-footer-text">© {{ now.Format "2006" }} {{ site.Params.author }}</span>
   </footer>
 
   <script src="{{ "js/search.js?v=20260702-1" | relURL }}" defer></script>
+  <script src="{{ "js/archive.js?v=20260702-2" | relURL }}" defer></script>
 </body>
 </html>

@@ -1,20 +1,22 @@
 {{ define "main" }}
-<section class="hero terminal-card">
-  <p class="eyebrow">$ whoami</p>
-  <h1>{{ site.Title }}</h1>
-  <p>{{ site.Params.description }}</p>
-</section>
+<div class="home-main">
+  <section class="hero terminal-card">
+    <p class="eyebrow">$ whoami</p>
+    <h1>{{ site.Title }}</h1>
+    <p>{{ site.Params.description }}</p>
+  </section>
 
-<section class="post-list">
-  <h2>Latest</h2>
-  {{ range first 10 (where site.RegularPages "Section" "in" (slice "posts" "tech" "game" "life")) }}
-    <article class="post-item">
-      <a href="{{ partial "permalink.html" . }}"><h3>{{ .Title }}</h3></a>
-      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-      <p>{{ .Summary | plainify | truncate 160 }}</p>
-    </article>
-  {{ else }}
-    <p>No posts yet.</p>
-  {{ end }}
-</section>
+  <section class="post-list">
+    <h2>Latest</h2>
+    {{ range first 10 (where site.RegularPages "Section" "in" (slice "posts" "tech" "game" "life")) }}
+      <article class="post-item">
+        <a href="{{ partial "permalink.html" . }}"><h3>{{ .Title }}</h3></a>
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+        <p>{{ .Summary | plainify | truncate 160 }}</p>
+      </article>
+    {{ else }}
+      <p>No posts yet.</p>
+    {{ end }}
+  </section>
+</div>
 {{ end }}
