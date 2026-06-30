@@ -10,9 +10,13 @@
 from __future__ import annotations
 
 import cgi
+import hashlib
+import hmac
 import html
 import json
 import os
+import tempfile
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -28,9 +32,11 @@ MAX_BODY_BYTES = int(os.environ.get("COMMENT_MAX_BODY_BYTES", "8192"))
 RATE_LIMIT_SECONDS = int(os.environ.get("COMMENT_RATE_LIMIT_SECONDS", "20"))
 MAX_PUBLIC_COMMENTS = int(os.environ.get("COMMENT_MAX_PUBLIC_COMMENTS", "100"))
 TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
+ADMIN_TOKEN = os.environ.get("COMMENT_ADMIN_TOKEN", "").strip()
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
 _last_submit_by_ip: dict[str, float] = {}
+_file_lock = threading.Lock()
 
 
 def now_iso() -> str:
@@ -42,6 +48,21 @@ def clamp(value: str, limit: int) -> str:
     if len(value) > limit:
         return value[:limit]
     return value
+
+
+def line_id(raw_line: str) -> str:
+    return hashlib.sha256(raw_line.encode("utf-8")).hexdigest()
+
+
+def is_admin(headers: Any) -> bool:
+    if not ADMIN_TOKEN:
+        return False
+    auth = headers.get("Authorization", "")
+    prefix = "Bearer "
+    if not auth.startswith(prefix):
+        return False
+    token = auth[len(prefix):].strip()
+    return hmac.compare_digest(token, ADMIN_TOKEN)
 
 
 def verify_turnstile(token: str, ip: str) -> tuple[bool, str]:
@@ -86,24 +107,70 @@ def public_comment(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def read_comments(page_path: str) -> list[dict[str, Any]]:
+def admin_comment(raw_line: str, row: dict[str, Any]) -> dict[str, Any]:
+    item = dict(row)
+    item["id"] = line_id(raw_line)
+    item["name"] = item.get("name") or "anonymous"
+    return item
+
+
+def iter_comment_lines() -> list[tuple[str, dict[str, Any]]]:
     if not COMMENTS_FILE.exists():
         return []
-
-    items: list[dict[str, Any]] = []
+    items: list[tuple[str, dict[str, Any]]] = []
     with COMMENTS_FILE.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
+        for raw in f:
+            raw = raw.strip()
+            if not raw:
                 continue
             try:
-                row = json.loads(line)
+                row = json.loads(raw)
             except json.JSONDecodeError:
                 continue
-            if page_path and row.get("page_path") != page_path:
-                continue
-            items.append(public_comment(row))
+            items.append((raw, row))
+    return items
+
+
+def read_comments(page_path: str) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    with _file_lock:
+      rows = iter_comment_lines()
+    for _, row in rows:
+        if page_path and row.get("page_path") != page_path:
+            continue
+        items.append(public_comment(row))
     return items[-MAX_PUBLIC_COMMENTS:]
+
+
+def read_admin_comments() -> list[dict[str, Any]]:
+    with _file_lock:
+        rows = iter_comment_lines()
+    return [admin_comment(raw, row) for raw, row in reversed(rows)]
+
+
+def delete_comment(comment_id: str) -> bool:
+    with _file_lock:
+        rows = iter_comment_lines()
+        kept = [(raw, row) for raw, row in rows if line_id(raw) != comment_id]
+        if len(kept) == len(rows):
+            return False
+
+        COMMENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(
+            prefix="comments.",
+            suffix=".jsonl.tmp",
+            dir=str(COMMENTS_FILE.parent),
+            text=True,
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                for raw, _ in kept:
+                    f.write(raw + "\n")
+            os.replace(tmp_name, COMMENTS_FILE)
+        finally:
+            if os.path.exists(tmp_name):
+                os.unlink(tmp_name)
+        return True
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -121,15 +188,48 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def require_admin(self) -> bool:
+        if is_admin(self.headers):
+            return True
+        status = 503 if not ADMIN_TOKEN else 401
+        error = "admin token is not configured" if not ADMIN_TOKEN else "unauthorized"
+        self.send_json(status, {"ok": False, "error": error})
+        return False
+
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        query = urllib.parse.parse_qs(parsed.query)
+
+        if parsed.path == "/api/admin/comments":
+            if not self.require_admin():
+                return
+            self.send_json(200, {"ok": True, "comments": read_admin_comments()})
+            return
+
         if parsed.path != "/api/comments":
             self.send_json(404, {"ok": False, "error": "not found"})
             return
 
-        query = urllib.parse.parse_qs(parsed.query)
         page_path = clamp(query.get("path", [""])[0], 300)
         self.send_json(200, {"ok": True, "comments": read_comments(page_path)})
+
+    def do_DELETE(self) -> None:
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path != "/api/admin/comments":
+            self.send_json(404, {"ok": False, "error": "not found"})
+            return
+        if not self.require_admin():
+            return
+
+        query = urllib.parse.parse_qs(parsed.query)
+        comment_id = clamp(query.get("id", [""])[0], 128)
+        if not comment_id:
+            self.send_json(400, {"ok": False, "error": "missing id"})
+            return
+        if delete_comment(comment_id):
+            self.send_json(200, {"ok": True})
+        else:
+            self.send_json(404, {"ok": False, "error": "comment not found"})
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
@@ -217,8 +317,9 @@ class Handler(BaseHTTPRequestHandler):
         }
 
         COMMENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with COMMENTS_FILE.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        with _file_lock:
+            with COMMENTS_FILE.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
         _last_submit_by_ip[ip] = ts
         self.send_json(201, {"ok": True, "comment": public_comment(row)})
@@ -229,6 +330,7 @@ def main() -> None:
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"comment server listening on http://{HOST}:{PORT}", flush=True)
     print(f"comments file: {COMMENTS_FILE}", flush=True)
+    print("admin api: enabled" if ADMIN_TOKEN else "admin api: disabled, COMMENT_ADMIN_TOKEN is not set", flush=True)
     httpd.serve_forever()
 
 

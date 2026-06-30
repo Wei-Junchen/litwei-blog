@@ -53,6 +53,56 @@ sudo systemctl status litwei-comments
 
 不要把真实 secret 写进 GitHub。
 
+
+## 管理面板
+
+访问：
+
+```text
+https://litwei.fun/admin/comments.html
+```
+
+需要 VPS 上配置 `COMMENT_ADMIN_TOKEN`。生成一个长随机 token：
+
+```bash
+openssl rand -hex 32
+```
+
+写入 systemd override：
+
+```bash
+sudo systemctl edit litwei-comments
+```
+
+示例：
+
+```ini
+[Service]
+Environment=COMMENT_ADMIN_TOKEN=替换成你的长随机token
+```
+
+如果同时启用 Turnstile secret，可以写在同一个 override：
+
+```ini
+[Service]
+Environment=TURNSTILE_SECRET_KEY=你的_Turnstile_Secret_Key
+Environment=COMMENT_ADMIN_TOKEN=替换成你的长随机token
+```
+
+重启：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart litwei-comments
+```
+
+管理面板功能：
+
+- 列出所有评论；
+- 显示页面、昵称、邮箱、IP、User-Agent、时间；
+- 按条删除评论；
+- token 只保存在浏览器 localStorage，不进入 GitHub。
+
 ## 本地存储
 
 默认保存到：
@@ -70,6 +120,16 @@ HTTPS server block 中保留：
 ```nginx
 location /api/comments {
     proxy_pass http://127.0.0.1:8787/api/comments;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 16k;
+}
+
+location /api/admin/comments {
+    proxy_pass http://127.0.0.1:8787/api/admin/comments;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
