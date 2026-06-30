@@ -1,8 +1,7 @@
 ---
 title: "Tech Article"
 date: 2026-06-30T00:00:00+08:00
-draft: false
-url: "/tech/article.html"
+draft: true
 tags: ["tech"]
 categories: ["tech"]
 summary: "技术文章占位页。"

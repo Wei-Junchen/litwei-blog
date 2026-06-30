@@ -19,19 +19,30 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
-      - run: hugo --minify
+      - run: rm -rf public && hugo --minify
       - name: Publish generated HTML to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
-      - name: Notify VPS to pull gh-pages
+      - name: Notify VPS to sync gh-pages
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd ${{ secrets.VPS_BLOG_DIR }}
-            git pull --ff-only origin gh-pages
+            set -e
+            DEPLOY_DIR="${{ secrets.VPS_BLOG_DIR }}"
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+              rm -rf "$DEPLOY_DIR"
+              mkdir -p "$(dirname "$DEPLOY_DIR")"
+              git clone --branch gh-pages --single-branch "$REPO_URL" "$DEPLOY_DIR"
+            else
+              cd "$DEPLOY_DIR"
+              git fetch origin gh-pages
+              git reset --hard origin/gh-pages
+            fi
