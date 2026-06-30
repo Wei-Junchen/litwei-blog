@@ -9,7 +9,7 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="{{ site.Home.RelPermalink }}">{{ site.Title }}</a>
+    <a class="brand" href="https://litwei.fun/">{{ site.Title }}</a>
     <nav class="nav" aria-label="main navigation">
       {{ range site.Menus.main }}
         <a href="{{ .URL }}">{{ .Name }}</a>
@@ -25,8 +25,6 @@
     <span>© {{ now.Format "2006" }} {{ site.Params.author }}</span>
   </footer>
 
-  {{ if .IsHome }}
-    <a class="admin-floating-link" href="/admin/comments.html" rel="nofollow">admin</a>
-  {{ end }}
+  <a class="admin-floating-link" href="https://litwei.fun/admin/comments.html" rel="nofollow" aria-label="comment admin">admin</a>
 </body>
 </html>
