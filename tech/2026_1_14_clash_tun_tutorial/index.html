@@ -1,0 +1,190 @@
+<!doctype html><html lang=zh-cn data-theme=dark><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="技术、游戏、生活与项目记录。"><title>| Litwei Blog</title><link rel=stylesheet href=/css/site.css></head><body><header class=site-header><a class=brand href=/>Litwei Blog</a><nav class=nav aria-label="main navigation"><a href=https://tech.litwei.fun/>Tech</a>
+<a href=https://game.litwei.fun/>Game</a>
+<a href=https://life.litwei.fun/>Life</a></nav></header><main class=site-main><article class="article terminal-card"><header class=article-header><h1></h1><time datetime=0001-01-01T00:00:00Z>0001-01-01</time></header><div class=content><h1 id=clashmihomo-tun-模式完全解析>Clash/Mihomo TUN 模式完全解析</h1><blockquote><p>从 Wireshark 抓包理解透明代理的工作原理</p></blockquote><hr><h2 id=-目录>📚 目录</h2><ol><li><a href=#1-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5>基础概念</a></li><li><a href=#2-dns-%E5%8A%AB%E6%8C%81%E6%9C%BA%E5%88%B6>DNS 劫持机制</a></li><li><a href=#3-%E7%AD%96%E7%95%A5%E8%B7%AF%E7%94%B1>策略路由</a></li><li><a href=#4-fake-ip-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86>Fake-IP 核心原理</a></li><li><a href=#5-%E6%B5%81%E9%87%8F%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B>流量处理流程</a></li><li><a href=#6-%E5%AE%8C%E6%95%B4%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B>完整工作流程</a></li><li><a href=#7-%E5%AE%9E%E8%B7%B5%E9%AA%8C%E8%AF%81>实践验证</a></li></ol><hr><h2 id=1-基础概念>1. 基础概念</h2><h3 id=11-什么是-tun-模式>1.1 什么是 TUN 模式？</h3><p>TUN 模式是一种<strong>透明代理</strong>技术，应用程序无需配置代理，所有流量自动被 Clash 接管。</p><p><strong>核心组件：</strong></p><pre tabindex=0><code>应用程序 → 虚拟网卡(TUN) → Clash → 物理网卡 → 互联网
+           198.18.0.x      处理分流    172.26.x.x
+</code></pre><h3 id=12-关键-ip-地址>1.2 关键 IP 地址</h3><table><thead><tr><th>类型</th><th>IP 地址</th><th>说明</th></tr></thead><tbody><tr><td>物理网卡</td><td>172.26.x.x</td><td>真实网络 IP</td></tr><tr><td>虚拟网卡</td><td>198.18.0.1</td><td>TUN 设备 IP</td></tr><tr><td>虚拟 DNS</td><td>198.18.0.2</td><td>Clash DNS 服务</td></tr><tr><td>Fake-IP 池</td><td>198.18.0.0/15</td><td>虚拟 IP 池（131,072 个地址）</td></tr></tbody></table><hr><h2 id=2-dns-劫持机制>2. DNS 劫持机制</h2><h3 id=21-双层劫持>2.1 双层劫持</h3><p>Clash 使用<strong>两层机制</strong>确保所有 DNS 查询被劫持：</p><p><strong>第一层：systemd-resolved 配置</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>$ resolvectl status
+</span></span><span style=display:flex><span>Link <span style=color:#ae81ff>7</span> <span style=color:#f92672>(</span>Mihomo<span style=color:#f92672>)</span>:
+</span></span><span style=display:flex><span>    DNS Servers: 198.18.0.2
+</span></span><span style=display:flex><span>    DNS Domain: ~.  <span style=color:#75715e># ← 关键！匹配所有域名，优先级最高</span>
+</span></span></code></pre></div><p><strong>第二层：策略路由拦截</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 即使你指定 DNS 服务器</span>
+</span></span><span style=display:flex><span>$ nslookup google.com 8.8.8.8
+</span></span><span style=display:flex><span><span style=color:#75715e># 仍然被劫持！</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 原因：</span>
+</span></span><span style=display:flex><span>$ ip route get 8.8.8.8
+</span></span><span style=display:flex><span>8.8.8.8 via 198.18.0.2 dev Mihomo  <span style=color:#75715e># 流量走虚拟网卡</span>
+</span></span></code></pre></div><p><strong>原理：</strong></p><ol><li>策略路由在内核级别拦截所有流量</li><li>Clash 检测端口 53（DNS 端口）</li><li>拦截并返回 Fake-IP</li><li>伪装响应源地址（让你以为来自 8.8.8.8）</li></ol><h3 id=22-dns-domain--的作用>2.2 DNS Domain: ~. 的作用</h3><p>systemd-resolved 的优先级：</p><pre tabindex=0><code>优先级 1: 精确域名匹配（如 google.com）
+优先级 2: 路由域匹配（~.）  ← Clash 在这里
+优先级 3: 默认路由（+DefaultRoute）
+</code></pre><p><code>~.</code> = 匹配所有域名的路由域配置，优先级高于物理网卡的默认 DNS。</p><hr><h2 id=3-策略路由>3. 策略路由</h2><h3 id=31-为什么流量走虚拟网卡>3.1 为什么流量走虚拟网卡？</h3><p>你看到的主路由表：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>$ ip route show
+</span></span><span style=display:flex><span>default via 172.26.255.254 dev wlp0s20f3  <span style=color:#75715e># 默认走物理网卡</span>
+</span></span></code></pre></div><p>但 Linux 有<strong>多张路由表</strong>！</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 策略路由规则</span>
+</span></span><span style=display:flex><span>$ ip rule show
+</span></span><span style=display:flex><span>9002: not from all iif lo lookup <span style=color:#ae81ff>2022</span>  <span style=color:#75715e># ← 优先级高</span>
+</span></span><span style=display:flex><span>32766: from all lookup main            <span style=color:#75715e># ← 主路由表</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 表 2022 的内容</span>
+</span></span><span style=display:flex><span>$ ip route show table <span style=color:#ae81ff>2022</span>
+</span></span><span style=display:flex><span>default via 198.18.0.2 dev Mihomo  <span style=color:#75715e># ← 默认走虚拟网卡！</span>
+</span></span></code></pre></div><p><strong>工作原理：</strong></p><ol><li>应用发起连接（如访问 Google）</li><li>内核查询策略路由规则（按优先级）</li><li>规则 9002 匹配 → 查询表 2022</li><li>表 2022：所有流量走虚拟网卡</li><li>流量进入 Clash</li></ol><hr><h2 id=4-fake-ip-核心原理>4. Fake-IP 核心原理</h2><h3 id=41-什么是-fake-ip>4.1 什么是 Fake-IP？</h3><p>Fake-IP 是 Clash <strong>为每个域名分配的虚拟 IP 地址</strong>。</p><p><strong>示例：</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>$ nslookup google.com 198.18.0.2
+</span></span><span style=display:flex><span>Address: 198.18.0.215  <span style=color:#75715e># ← Fake-IP</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ nslookup baidu.com 198.18.0.2
+</span></span><span style=display:flex><span>Address: 198.18.0.209  <span style=color:#75715e># ← 另一个 Fake-IP</span>
+</span></span></code></pre></div><h3 id=42-fake-ip-映射表>4.2 Fake-IP 映射表</h3><p>Clash 内部维护一个<strong>核心映射表</strong>：</p><pre tabindex=0><code>┌─────────────────────────────────────┐
+│  Fake-IP 映射表（核心数据结构）      │
+├─────────────────────────────────────┤
+│ Fake-IP        ↔  域名               │
+├─────────────────────────────────────┤
+│ 198.18.0.215  →  google.com         │
+│ 198.18.0.209  →  baidu.com          │
+│ 198.18.0.71   →  github.com         │
+└─────────────────────────────────────┘
+</code></pre><p><strong>特点：</strong></p><ul><li><strong>持久化</strong>：同一域名在缓存期内返回相同的 Fake-IP</li><li><strong>双向查询</strong>：<ul><li>DNS 查询时：域名 → Fake-IP（写入）</li><li>流量处理时：Fake-IP → 域名（读取）</li></ul></li></ul><h3 id=43-为什么需要-fake-ip>4.3 为什么需要 Fake-IP？</h3><p><strong>传统方式的问题：</strong></p><pre tabindex=0><code>DNS 返回真实 IP → 需要 iptables 拦截流量 → 复杂
+</code></pre><p><strong>Fake-IP 的优势：</strong></p><pre tabindex=0><code>DNS 返回虚拟 IP → 策略路由自动捕获 → 简单
+         ↓
+    映射表记录
+         ↓
+    反查域名匹配规则 → 灵活
+</code></pre><hr><h2 id=5-流量处理流程>5. 流量处理流程</h2><h3 id=51-clash-如何处理-tun-流量>5.1 Clash 如何处理 TUN 流量</h3><pre tabindex=0><code>┌─────────────────────────────────────────────┐
+│ ① 从 TUN 读取数据包                         │
+│    目标: 198.18.0.215:443                   │
+└──────────────┬──────────────────────────────┘
+               ↓
+┌─────────────────────────────────────────────┐
+│ ② 查询 Fake-IP 映射表 ⭐                   │
+│    198.18.0.215 → google.com               │
+└──────────────┬──────────────────────────────┘
+               ↓
+┌─────────────────────────────────────────────┐
+│ ③ 匹配规则                                  │
+│    DOMAIN-KEYWORD,google,Proxy ✅          │
+└──────────────┬──────────────────────────────┘
+               ↓
+┌─────────────────────────────────────────────┐
+│ ④ 执行动作                                  │
+│    Proxy: 通过代理服务器                    │
+│    DIRECT: 查真实 IP 后直连                │
+└─────────────────────────────────────────────┘
+</code></pre><h3 id=52-规则配置示例>5.2 规则配置示例</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 广告拦截</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>DOMAIN-KEYWORD,ads,REJECT</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 国内直连</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>DOMAIN-SUFFIX,cn,DIRECT</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>GEOIP,CN,DIRECT</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 国外代理</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>DOMAIN-SUFFIX,google.com,Proxy</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>DOMAIN-KEYWORD,youtube,Proxy</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 兜底规则</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>MATCH,Proxy</span>
+</span></span></code></pre></div><h3 id=53-代理-vs-直连>5.3 代理 vs 直连</h3><p><strong>代理流量（如 Google）：</strong></p><pre tabindex=0><code>浏览器 → Clash(TUN) → Clash 查规则(Proxy)
+                    ↓
+              连接代理服务器（加密隧道）
+                    ↓
+              代理服务器访问 Google
+</code></pre><p><strong>直连流量（如百度）：</strong></p><pre tabindex=0><code>浏览器 → Clash(TUN) → Clash 查规则(DIRECT)
+                    ↓
+              查询真实 IP (220.181.38.148)
+                    ↓
+              物理网卡直连百度
+</code></pre><hr><h2 id=6-完整工作流程>6. 完整工作流程</h2><h3 id=访问-google-的完整过程>访问 Google 的完整过程</h3><pre tabindex=0><code>1. 浏览器输入: google.com
+   ↓
+2. DNS 查询被劫持
+   • 查询发往 198.18.0.2 (Clash DNS)
+   • Clash 分配 Fake-IP: 198.18.0.215
+   • 写入映射表: google.com ↔ 198.18.0.215
+   ↓
+3. 浏览器连接 198.18.0.215:443
+   ↓
+4. 策略路由拦截
+   • 查询规则 9002 → 表 2022
+   • 流量进入 Mihomo 虚拟网卡
+   ↓
+5. Clash 处理
+   • 读取数据包: 目标 198.18.0.215:443
+   • 查映射表: 198.18.0.215 → google.com
+   • 匹配规则: DOMAIN-KEYWORD,google,Proxy
+   • 选择代理节点
+   ↓
+6. 建立代理连接
+   • 从物理网卡连接代理服务器
+   • 通过加密隧道访问 Google
+   ↓
+7. 数据双向转发
+   浏览器 ←→ Clash ←→ 代理 ←→ Google
+</code></pre><hr><h2 id=7-实践验证>7. 实践验证</h2><h3 id=71-查看-dns-配置>7.1 查看 DNS 配置</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 查看完整 DNS 配置</span>
+</span></span><span style=display:flex><span>resolvectl status
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 重点关注：</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># - DNS Domain: ~.（Clash 的关键配置）</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># - DNS Servers: 198.18.0.2</span>
+</span></span></code></pre></div><h3 id=72-测试-dns-劫持>7.2 测试 DNS 劫持</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 测试 1: 默认查询</span>
+</span></span><span style=display:flex><span>nslookup google.com
+</span></span><span style=display:flex><span><span style=color:#75715e># 返回 Fake-IP</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 测试 2: 指定 DNS 服务器（仍被劫持）</span>
+</span></span><span style=display:flex><span>nslookup google.com 8.8.8.8
+</span></span><span style=display:flex><span><span style=color:#75715e># 仍返回 Fake-IP！</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 测试 3: 多次查询（验证缓存）</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i in <span style=color:#f92672>{</span>1..3<span style=color:#f92672>}</span>; <span style=color:#66d9ef>do</span> nslookup google.com 198.18.0.2 | grep <span style=color:#e6db74>&#34;Address:&#34;</span> | tail -1; <span style=color:#66d9ef>done</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 返回相同的 Fake-IP</span>
+</span></span></code></pre></div><h3 id=73-查看策略路由>7.3 查看策略路由</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 查看策略路由规则</span>
+</span></span><span style=display:flex><span>ip rule show
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 查看 Clash 的路由表</span>
+</span></span><span style=display:flex><span>ip route show table <span style=color:#ae81ff>2022</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 验证路由决策</span>
+</span></span><span style=display:flex><span>ip route get 198.18.0.215
+</span></span><span style=display:flex><span>ip route get 8.8.8.8
+</span></span></code></pre></div><h3 id=74-wireshark-过滤器>7.4 Wireshark 过滤器</h3><pre tabindex=0><code># 只看 DNS
+dns
+
+# 只看 TLS 握手
+ssl.handshake
+
+# 只看特定 IP
+ip.addr == 198.18.0.95
+
+# 只看 TCP 握手
+tcp.flags.syn == 1
+</code></pre><hr><h2 id=-核心概念总结>📊 核心概念总结</h2><h3 id=clash-tun-模式的三大支柱>Clash TUN 模式的三大支柱</h3><pre tabindex=0><code>┌─────────────────────────────────────────┐
+│ 1. DNS 劫持 (双层机制)                  │
+│    • DNS Domain: ~.                     │
+│    • 策略路由拦截                        │
+│    → 所有 DNS 查询返回 Fake-IP          │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│ 2. Fake-IP 映射表 (核心数据结构)        │
+│    • 连接 DNS 和流量处理                │
+│    • 域名 ↔ Fake-IP 双向映射            │
+│    → 使基于域名的规则匹配成为可能        │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│ 3. 策略路由 (内核级拦截)                │
+│    • 多路由表机制                        │
+│    • 优先级控制                          │
+│    → 所有流量强制进入 Clash              │
+└─────────────────────────────────────────┘
+</code></pre><h3 id=关键理解点>关键理解点</h3><ol><li><strong>双层 DNS 劫持</strong>：即使指定 DNS 服务器也无法绕过</li><li><strong>Fake-IP 是桥梁</strong>：连接 DNS 劫持和流量处理</li><li><strong>映射表是核心</strong>：实现基于域名的规则匹配</li><li><strong>策略路由是基础</strong>：内核级流量拦截</li><li><strong>完全透明</strong>：应用程序无感知</li></ol><hr><h2 id=-常见问题>🎯 常见问题</h2><p><strong>Q: 为什么指定 8.8.8.8 仍返回 Fake-IP？</strong>
+A: 策略路由在内核级别拦截了所有流量，Clash 检测到端口 53 的流量就拦截并返回 Fake-IP。</p><p><strong>Q: Fake-IP 会变吗？</strong>
+A: 短期内不会。Clash 缓存映射关系（几小时到几天），同一域名返回相同的 Fake-IP。</p><p><strong>Q: 直连流量也走 TUN 吗？</strong>
+A: 是的。所有流量都进入 Clash，由 Clash 根据规则决定代理还是直连。</p><p><strong>Q: 如何区分代理和直连？</strong>
+A: Clash 通过反查映射表得到域名，然后匹配规则列表。</p><p><strong>Q: 为什么不用 iptables？</strong>
+A: Fake-IP 模式更优雅：DNS 阶段就标记流量，策略路由自动捕获，无需复杂的 iptables 规则。</p><hr><h2 id=-总结>🔚 总结</h2><p>Clash TUN 模式是一个<strong>完整的网络栈中间层</strong>：</p><ul><li><strong>对上</strong>：伪装成 DNS 服务器，返回 Fake-IP</li><li><strong>对中</strong>：维护映射表，连接 DNS 和流量处理</li><li><strong>对下</strong>：接管 TUN 流量，智能分流</li></ul><p><strong>核心是 Fake-IP 映射表</strong>：</p><ul><li>DNS 服务写入映射</li><li>流量处理读取映射</li><li>实现基于域名的规则匹配</li></ul><p>这就是透明代理的完整工作原理！🎓</p></div></article><section class=comment-terminal id=comments aria-labelledby=comment-terminal-title data-comments-endpoint=/api/comments data-page-path=/tech/2026_1_14_clash_tun_tutorial/><div class=comment-title id=comment-terminal-title>--- comments section ---</div><div class=comment-list data-comment-list><p class=comment-hint>loading local comments...</p></div><form class=comment-form action=/api/comments method=POST><input type=hidden name=page_url value=https://litwei.fun/tech/2026_1_14_clash_tun_tutorial/>
+<input type=hidden name=page_path value=/tech/2026_1_14_clash_tun_tutorial/>
+<input type=hidden name=page_title>
+<input type=hidden name=timestamp class=comment-timestamp>
+<input type=text name=_gotcha class=comment-honeypot tabindex=-1 autocomplete=off aria-hidden=true>
+<label><span>nickname / optional</span>
+<input type=text name=name placeholder=anonymous autocomplete=name>
+</label><label><span>email / optional</span>
+<input type=email name=email placeholder="optional, only stored locally" autocomplete=email>
+</label><label><span>comment *</span>
+<textarea name=comment rows=5 required placeholder="anonymous comments are welcome..."></textarea></label><p class=comment-hint data-comment-status>Nickname and email are optional. Comments are stored locally on this VPS.</p><button type=submit class=comment-submit>submit</button></form></section><link rel=stylesheet href=/css/comments.css><script src=/js/comments.js defer></script></main><footer class=site-footer><span>© 2026 Litwei</span></footer></body></html>
