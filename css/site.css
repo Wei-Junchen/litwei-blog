@@ -587,3 +587,19 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
   width: 100% !important;
   margin: 0 !important;
 }
+
+/* Wider section/article reading area */
+.section-layout {
+  grid-template-columns: 260px minmax(0, 1fr) 0 !important;
+  justify-content: stretch !important;
+}
+
+.section-layout.archive-collapsed {
+  grid-template-columns: 3.25rem minmax(0, 1fr) 0 !important;
+}
+
+@media (min-width: 1181px) {
+  .section-main {
+    max-width: none !important;
+  }
+}
