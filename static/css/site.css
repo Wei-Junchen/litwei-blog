@@ -28,6 +28,9 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
   justify-content: space-between;
 }
 .brand { font-weight: 700; letter-spacing: .08em; }
+.brand-group { display: inline-flex; align-items: baseline; gap: .75rem; }
+.admin-header-link { color: var(--muted); font-size: .78rem; border: 1px solid var(--border); border-radius: 999px; padding: .12rem .45rem; }
+.admin-header-link:hover { color: var(--green); border-color: var(--green); }
 .nav { display: flex; gap: .9rem; flex-wrap: wrap; }
 .site-main { max-width: 920px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
 .terminal-card, .post-item {
@@ -49,30 +52,3 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
   .site-main { padding-inline: 1rem; }
 }
 
-
-.admin-floating-link {
-  position: fixed !important;
-  right: 1rem !important;
-  bottom: 1rem !important;
-  left: auto !important;
-  top: auto !important;
-  transform: none !important;
-  z-index: 9999;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  background: rgba(2, 4, 3, 0.88);
-  color: var(--muted);
-  padding: 0.45rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  line-height: 1;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 0 14px rgba(0, 255, 136, 0.12);
-}
-
-.admin-floating-link:hover {
-  color: var(--green);
-  border-color: var(--green);
-}
