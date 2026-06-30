@@ -48,3 +48,24 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
   .site-header { align-items: flex-start; flex-direction: column; }
   .site-main { padding-inline: 1rem; }
 }
+
+
+.admin-floating-link {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  border: 1px solid var(--border);
+  background: rgba(2, 4, 3, 0.82);
+  color: var(--muted);
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.12);
+}
+
+.admin-floating-link:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
