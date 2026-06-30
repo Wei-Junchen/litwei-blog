@@ -1,10 +1,15 @@
-{{- $endpoint := .Site.Params.formspree.endpoint | default "https://formspree.io/f/YOUR_FORM_ID" -}}
+{{- $endpoint := .Site.Params.comments.endpoint | default "/api/comments" -}}
 
-<section class="comment-terminal" id="comments" aria-labelledby="comment-terminal-title">
+<section class="comment-terminal" id="comments" aria-labelledby="comment-terminal-title" data-comments-endpoint="{{ $endpoint }}" data-page-path="{{ .RelPermalink }}">
   <div class="comment-title" id="comment-terminal-title">--- comments section ---</div>
+
+  <div class="comment-list" data-comment-list>
+    <p class="comment-hint">loading local comments...</p>
+  </div>
 
   <form class="comment-form" action="{{ $endpoint }}" method="POST">
     <input type="hidden" name="page_url" value="{{ .Permalink }}">
+    <input type="hidden" name="page_path" value="{{ .RelPermalink }}">
     <input type="hidden" name="page_title" value="{{ .Title }}">
     <input type="hidden" name="timestamp" class="comment-timestamp">
     <input type="text" name="_gotcha" class="comment-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -16,7 +21,7 @@
 
     <label>
       <span>email / optional</span>
-      <input type="email" name="email" placeholder="optional, only visible to site owner" autocomplete="email">
+      <input type="email" name="email" placeholder="optional, only stored locally" autocomplete="email">
     </label>
 
     <label>
@@ -24,8 +29,8 @@
       <textarea name="comment" rows="5" required placeholder="anonymous comments are welcome..."></textarea>
     </label>
 
-    <p class="comment-hint">
-      Nickname and email are optional. Anonymous comments are OK. Comments are delivered to the site owner by email via Formspree.
+    <p class="comment-hint" data-comment-status>
+      Nickname and email are optional. Comments are stored locally on this VPS.
     </p>
 
     <button type="submit" class="comment-submit">submit</button>

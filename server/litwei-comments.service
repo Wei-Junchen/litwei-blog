@@ -1,0 +1,24 @@
+[Unit]
+Description=Litwei Blog Local Comment Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Environment=COMMENT_HOST=127.0.0.1
+Environment=COMMENT_PORT=8787
+Environment=COMMENTS_FILE=/var/lib/litwei-blog/comments.jsonl
+Environment=COMMENT_RATE_LIMIT_SECONDS=20
+WorkingDirectory=/opt/litwei-blog-comment-server
+ExecStart=/usr/bin/python3 /opt/litwei-blog-comment-server/comment_server.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/litwei-blog
+
+[Install]
+WantedBy=multi-user.target

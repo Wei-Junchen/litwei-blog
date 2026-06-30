@@ -1,36 +1,63 @@
-# 评论系统
+# 本地评论系统
 
-本站使用纯前端 Formspree 评论表单，无数据库、无自建 API、可直接部署到 Nginx 静态站。
+本站评论不再使用 Formspree。评论通过 VPS 本地轻量 Python 服务保存到本地文件。
 
-## 当前行为
+## 行为
 
 - `comment` 必填。
 - `nickname/name` 可选，不填就是匿名。
-- `email` 可选，只会随邮件发给站长，不在网页展示。
-- 评论不会公开展示在页面上，只发送邮件通知站长。
-- 保留 `_gotcha` honeypot 字段和频率提示，降低垃圾评论。
+- `email` 可选，只保存在本地 JSONL 文件中，不在页面公开展示。
+- 页面会读取并展示同一篇文章下的公开评论内容。
+- 无数据库、无外部评论服务、无 Node.js。
 
-## 配置 Formspree
+## 本地存储
 
-1. 在 Formspree 创建一个 form。
-2. 在 Formspree 后台设置站长收件邮箱。
-3. 替换 `hugo.toml`：
+默认保存到：
+
+```text
+/var/lib/litwei-blog/comments.jsonl
+```
+
+每行是一条 JSON，包含页面、昵称、邮箱、评论、IP、User-Agent 和时间戳。
+
+## VPS 部署
+
+```bash
+sudo mkdir -p /opt/litwei-blog-comment-server /var/lib/litwei-blog
+sudo cp server/comment_server.py /opt/litwei-blog-comment-server/comment_server.py
+sudo cp server/litwei-comments.service /etc/systemd/system/litwei-comments.service
+sudo chown -R www-data:www-data /var/lib/litwei-blog
+sudo systemctl daemon-reload
+sudo systemctl enable --now litwei-comments
+sudo systemctl status litwei-comments
+```
+
+## Nginx
+
+在 `litwei.fun`、`tech.litwei.fun`、`game.litwei.fun`、`life.litwei.fun` 的 HTTPS server block 里加入：
+
+```nginx
+location /api/comments {
+    proxy_pass http://127.0.0.1:8787/api/comments;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 16k;
+}
+```
+
+然后：
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+## Hugo 配置
 
 ```toml
-[params.formspree]
-  endpoint = "https://formspree.io/f/YOUR_FORM_ID"
-```
-
-每条评论会提交：`page_url`、`page_title`、`timestamp`、`name`、`email`、`comment`。
-
-## Hugo 复用 snippet
-
-```go-html-template
-{{ partial "comments.html" . }}
-```
-
-默认文章页会自动显示评论区。单篇文章关闭评论：
-
-```yaml
-comments: false
+[params.comments]
+  endpoint = '/api/comments'
 ```

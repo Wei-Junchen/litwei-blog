@@ -11,8 +11,8 @@ timeZone = 'Asia/Shanghai'
   author = 'Litwei'
   description = '技术、游戏、生活与项目记录。'
 
-[params.formspree]
-  endpoint = 'https://formspree.io/f/YOUR_FORM_ID'
+[params.comments]
+  endpoint = '/api/comments'
 
 [menus]
   [[menus.main]]
