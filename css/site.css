@@ -1,0 +1,50 @@
+:root {
+  color-scheme: dark;
+  --bg: #050807;
+  --panel: #07110c;
+  --text: #d8ffe8;
+  --muted: #7bcfa4;
+  --green: #00ff88;
+  --border: #1f7a4d;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #0a1d13 0, var(--bg) 42rem);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  line-height: 1.7;
+}
+a { color: var(--green); text-decoration: none; }
+a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
+.site-header, .site-footer {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand { font-weight: 700; letter-spacing: .08em; }
+.nav { display: flex; gap: .9rem; flex-wrap: wrap; }
+.site-main { max-width: 920px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
+.terminal-card, .post-item {
+  border: 1px solid var(--border);
+  background: rgba(7, 17, 12, .88);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 0 24px rgba(0,255,136,.08);
+}
+.hero h1, .article h1 { color: var(--green); margin-top: 0; }
+.eyebrow, time, .site-footer { color: var(--muted); }
+.post-list { display: grid; gap: 1rem; margin-top: 2rem; }
+.post-item h2, .post-item h3 { margin: 0 0 .25rem; }
+.content img { max-width: 100%; border-radius: 8px; }
+.content pre { overflow-x: auto; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: #020403; }
+.content code { color: #8dffc0; }
+@media (max-width: 640px) {
+  .site-header { align-items: flex-start; flex-direction: column; }
+  .site-main { padding-inline: 1rem; }
+}
