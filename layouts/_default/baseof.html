@@ -24,5 +24,9 @@
   <footer class="site-footer">
     <span>© {{ now.Format "2006" }} {{ site.Params.author }}</span>
   </footer>
+
+  {{ if .IsHome }}
+    <a class="admin-floating-link" href="/admin/comments.html" rel="nofollow">admin</a>
+  {{ end }}
 </body>
 </html>
