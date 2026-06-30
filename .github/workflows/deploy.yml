@@ -19,7 +19,7 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
-      - run: rm -rf public && hugo --minify
+      - run: python3 scripts/normalize-markdown.py && rm -rf public && hugo --minify
       - name: Publish generated HTML to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:

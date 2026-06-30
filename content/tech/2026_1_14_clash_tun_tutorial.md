@@ -1,3 +1,14 @@
+---
+title: "Clash/Mihomo TUN 模式完全解析"
+date: 2026-01-14T00:00:00+08:00
+draft: false
+tags: []
+categories: ["tech"]
+summary: ""
+cover: ""
+comments: true
+---
+
 # Clash/Mihomo TUN 模式完全解析
 
 > 从 Wireshark 抓包理解透明代理的工作原理

@@ -2,10 +2,10 @@
 title: "Game Article"
 date: 2026-06-30T00:00:00+08:00
 draft: false
-url: "/game/article.html"
 tags: ["game"]
 categories: ["game"]
 summary: "游戏文章占位页。"
+cover: ""
 comments: true
 ---
 

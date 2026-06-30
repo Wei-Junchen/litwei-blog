@@ -5,6 +5,7 @@ draft: true
 tags: ["tech"]
 categories: ["tech"]
 summary: "技术文章占位页。"
+cover: ""
 comments: true
 ---
 
