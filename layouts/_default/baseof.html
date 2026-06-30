@@ -5,11 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{ .Description | default site.Params.description }}">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} | {{ site.Title }}{{ end }}</title>
-  <link rel="stylesheet" href="{{ "css/site.css" | relURL }}">
+  <link rel="stylesheet" href="{{ "css/site.css?v=20260702-1" | relURL }}">
 </head>
 <body>
   <header class="site-header">
-    <div class="brand-group"><a class="brand" href="https://litwei.fun/">{{ site.Title }}</a><a class="admin-header-link" href="https://litwei.fun/admin/comments.html" rel="nofollow">admin</a></div>
+    <div class="brand-group">
+      <a class="brand" href="https://litwei.fun/">{{ site.Title }}</a>
+      {{ if .IsHome }}
+        <a class="admin-header-link" href="https://litwei.fun/admin/comments.html" rel="nofollow">admin</a>
+      {{ end }}
+    </div>
+
+    <div class="header-search" role="search">
+      <input id="site-search" class="site-search-input" type="search" placeholder="search articles..." autocomplete="off" aria-label="search articles">
+      <div id="site-search-results" class="site-search-results" hidden></div>
+    </div>
+
     <nav class="nav" aria-label="main navigation">
       {{ range site.Menus.main }}
         <a href="{{ .URL }}">{{ .Name }}</a>
@@ -25,5 +36,6 @@
     <span>© {{ now.Format "2006" }} {{ site.Params.author }}</span>
   </footer>
 
+  <script src="{{ "js/search.js?v=20260702-1" | relURL }}" defer></script>
 </body>
 </html>

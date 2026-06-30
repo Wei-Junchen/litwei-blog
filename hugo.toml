@@ -11,6 +11,9 @@ timeZone = 'Asia/Shanghai'
   author = 'Litwei'
   description = '技术、游戏、生活与项目记录。'
 
+[outputs]
+  home = ['HTML', 'RSS', 'JSON']
+
 [params.comments]
   endpoint = '/api/comments'
   turnstileSiteKey = '0x4AAAAAADtgM_c7pUR80bzf'
