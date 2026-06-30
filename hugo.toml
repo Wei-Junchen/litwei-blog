@@ -13,7 +13,7 @@ timeZone = 'Asia/Shanghai'
 
 [params.comments]
   endpoint = '/api/comments'
-  turnstileSiteKey = '1x00000000000000000000AA'
+  turnstileSiteKey = '0x4AAAAAADtgM_c7pUR80bzf'
 
 [menus]
   [[menus.main]]
