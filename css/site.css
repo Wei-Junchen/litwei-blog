@@ -603,3 +603,32 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
     max-width: none !important;
   }
 }
+
+
+/* Extra-wide desktop reading layout */
+@media (min-width: 1181px) {
+  .site-header,
+  .site-main {
+    max-width: 1560px !important;
+  }
+
+  .section-layout {
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+    gap: 1.25rem !important;
+    justify-content: stretch !important;
+  }
+
+  .section-layout.archive-collapsed {
+    grid-template-columns: 3.25rem minmax(0, 1fr) !important;
+  }
+
+  .section-archive {
+    grid-column: 1 !important;
+  }
+
+  .section-main {
+    grid-column: 2 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
