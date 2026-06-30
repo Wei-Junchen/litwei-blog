@@ -1,0 +1,48 @@
+{{- $endpoint := .Site.Params.formspree.endpoint | default "https://formspree.io/f/YOUR_FORM_ID" -}}
+{{- $captchaQuestion := .Site.Params.formspree.captchaQuestion | default "2 + 3 = ?" -}}
+{{- $captchaAnswer := .Site.Params.formspree.captchaAnswer | default "5" -}}
+
+<section class="comment-terminal" id="comments" aria-labelledby="comment-terminal-title">
+  <div class="comment-title" id="comment-terminal-title">--- comments section ---</div>
+
+  <form
+    class="comment-form"
+    action="{{ $endpoint }}"
+    method="POST"
+    data-captcha-answer="{{ $captchaAnswer }}"
+  >
+    <input type="hidden" name="page_url" value="{{ .Permalink }}">
+    <input type="hidden" name="page_title" value="{{ .Title }}">
+    <input type="hidden" name="timestamp" class="comment-timestamp">
+    <input type="text" name="_gotcha" class="comment-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+    <label>
+      <span>name</span>
+      <input type="text" name="name" placeholder="anonymous" autocomplete="name">
+    </label>
+
+    <label>
+      <span>email</span>
+      <input type="email" name="email" placeholder="you@example.com" autocomplete="email">
+    </label>
+
+    <label>
+      <span>comment *</span>
+      <textarea name="comment" rows="5" required placeholder="leave your trace..."></textarea>
+    </label>
+
+    <label>
+      <span>captcha: {{ $captchaQuestion }}</span>
+      <input type="text" name="captcha" class="comment-captcha" required inputmode="numeric" autocomplete="off" placeholder="{{ $captchaAnswer }}">
+    </label>
+
+    <p class="comment-hint">
+      Comments are delivered to the site owner by email via Formspree. Please do not submit too frequently.
+    </p>
+
+    <button type="submit" class="comment-submit">submit</button>
+  </form>
+</section>
+
+<link rel="stylesheet" href="{{ "css/comments.css" | relURL }}">
+<script src="{{ "js/comments.js" | relURL }}" defer></script>

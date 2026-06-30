@@ -1,0 +1,35 @@
+baseURL = 'https://example.org/'
+languageCode = 'zh-cn'
+title = 'Litwei Blog'
+defaultContentLanguage = 'zh-cn'
+timeZone = 'Asia/Shanghai'
+
+[pagination]
+  pagerSize = 10
+
+[params]
+  author = 'Litwei'
+  description = '技术、游戏、生活与项目记录。'
+
+[params.formspree]
+  endpoint = 'https://formspree.io/f/YOUR_FORM_ID'
+  captchaQuestion = '2 + 3 = ?'
+  captchaAnswer = '5'
+
+[menus]
+  [[menus.main]]
+    name = 'Tech'
+    pageRef = '/tech'
+    weight = 10
+  [[menus.main]]
+    name = 'Game'
+    pageRef = '/game'
+    weight = 20
+  [[menus.main]]
+    name = 'Life'
+    pageRef = '/life'
+    weight = 30
+  [[menus.main]]
+    name = 'Posts'
+    pageRef = '/posts'
+    weight = 40
