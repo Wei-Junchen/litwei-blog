@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import cgi
 import html
 import json
 import os
@@ -117,15 +118,33 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(400, {"ok": False, "error": "invalid body size"})
             return
 
-        raw = self.rfile.read(length).decode("utf-8", errors="replace")
+        body = self.rfile.read(length)
         ctype = self.headers.get("Content-Type", "")
         if "application/json" in ctype:
             try:
-                form = json.loads(raw)
+                form = json.loads(body.decode("utf-8", errors="replace"))
             except json.JSONDecodeError:
                 self.send_json(400, {"ok": False, "error": "invalid json"})
                 return
+        elif "multipart/form-data" in ctype:
+            environ = {
+                "REQUEST_METHOD": "POST",
+                "CONTENT_TYPE": ctype,
+                "CONTENT_LENGTH": str(length),
+            }
+            parsed_form = cgi.FieldStorage(
+                fp=__import__("io").BytesIO(body),
+                environ=environ,
+                keep_blank_values=True,
+            )
+            form = {}
+            for key in parsed_form.keys():
+                item = parsed_form[key]
+                if isinstance(item, list):
+                    item = item[-1]
+                form[key] = item.value if hasattr(item, "value") else ""
         else:
+            raw = body.decode("utf-8", errors="replace")
             parsed_form = urllib.parse.parse_qs(raw, keep_blank_values=True)
             form = {k: v[-1] if v else "" for k, v in parsed_form.items()}
 

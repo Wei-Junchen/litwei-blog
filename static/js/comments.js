@@ -47,7 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const loadComments = async () => {
       if (!list) return;
       try {
-        const res = await fetch(`${endpoint}?path=${encodeURIComponent(pagePath)}`, {
+        const res = await fetch(`${endpoint}?path=${encodeURIComponent(pagePath)}&_=${Date.now()}`, {
+          method: "GET",
+          cache: "no-store",
           headers: { "Accept": "application/json" },
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -72,10 +74,15 @@ document.addEventListener("DOMContentLoaded", () => {
       setStatus("submitting...");
 
       try {
+        const payload = new URLSearchParams(new FormData(form));
         const res = await fetch(endpoint, {
           method: "POST",
-          body: new FormData(form),
-          headers: { "Accept": "application/json" },
+          body: payload,
+          cache: "no-store",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
