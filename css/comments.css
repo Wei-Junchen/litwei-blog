@@ -160,3 +160,7 @@ html[data-theme="light"] .comment-hint {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.comment-auth {
+  min-height: 65px;
+}
