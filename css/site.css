@@ -634,10 +634,15 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
 }
 
 
-/* Shift article text inside the existing wide border, do not shrink the card */
+/* Article inner frame: equal padding inside the card */
 @media (min-width: 1181px) {
+  .article.terminal-card {
+    padding: clamp(2rem, 2.6vw, 3.5rem) !important;
+  }
+
   .article .article-header,
   .article .content {
-    padding-left: clamp(1.5rem, 2.4vw, 3.25rem);
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 }
