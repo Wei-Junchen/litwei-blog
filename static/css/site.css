@@ -632,3 +632,14 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
     max-width: none !important;
   }
 }
+
+/* Re-center article body while keeping wide layout */
+@media (min-width: 1181px) {
+  .section-layout {
+    grid-template-columns: 220px minmax(0, 1fr) 220px !important;
+  }
+
+  .section-layout.archive-collapsed {
+    grid-template-columns: 3.25rem minmax(0, 1fr) 3.25rem !important;
+  }
+}
