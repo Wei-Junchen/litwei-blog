@@ -132,3 +132,31 @@ html[data-theme="light"] .comment-hint {
     justify-self: stretch;
   }
 }
+
+.comment-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.comment-item {
+  border: 1px solid rgba(0, 255, 136, 0.28);
+  background: rgba(0, 255, 136, 0.035);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #8dffc0;
+  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+}
+
+.comment-body {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
