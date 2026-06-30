@@ -319,3 +319,45 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
     font-size: 0.9rem;
   }
 }
+
+/* Final footer/search overrides */
+.site-footer {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .header-search {
+    order: 3;
+  }
+
+  .site-search-input {
+    height: 2.15rem;
+    max-height: 2.15rem;
+    border-radius: 999px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.86rem;
+    line-height: 1.2;
+  }
+
+  .site-search-input::placeholder {
+    font-size: 0.82rem;
+  }
+
+  .site-search-results {
+    font-size: 0.86rem;
+  }
+
+  .site-search-result {
+    padding: 0.5rem;
+  }
+
+  .site-footer {
+    display: block;
+    text-align: center;
+    padding: 1.25rem 0.85rem;
+  }
+}
