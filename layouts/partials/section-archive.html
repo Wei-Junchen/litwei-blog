@@ -1,0 +1,28 @@
+{{- $section := .Section -}}
+{{- $sections := slice "tech" "game" "life" -}}
+{{- if in $sections $section -}}
+  {{- $pages := where site.RegularPages "Section" $section -}}
+  {{- if gt (len $pages) 0 -}}
+    <aside class="section-archive terminal-card" aria-label="{{ $section }} archive">
+      <div class="archive-title">$ archive/{{ $section }}</div>
+      {{- range ($pages.GroupByDate "2006") -}}
+        <details class="archive-year" open>
+          <summary>{{ .Key }}</summary>
+          {{- range (.Pages.GroupByDate "2006-01") -}}
+            <details class="archive-month" open>
+              <summary>{{ replace .Key "-" "." }}</summary>
+              <ul>
+                {{- range .Pages -}}
+                  <li>
+                    <a href="{{ partial "permalink.html" . }}">{{ .Title }}</a>
+                    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01-02" }}</time>
+                  </li>
+                {{- end -}}
+              </ul>
+            </details>
+          {{- end -}}
+        </details>
+      {{- end -}}
+    </aside>
+  {{- end -}}
+{{- end -}}

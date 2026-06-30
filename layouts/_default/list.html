@@ -1,18 +1,24 @@
 {{ define "main" }}
-<section class="terminal-card">
-  <h1>{{ .Title }}</h1>
-  {{ with .Content }}<div class="content">{{ . }}</div>{{ end }}
-</section>
+<div class="section-layout">
+  {{ partial "section-archive.html" . }}
 
-<section class="post-list">
-  {{ range .Pages }}
-    <article class="post-item">
-      <a href="{{ partial "permalink.html" . }}"><h2>{{ .Title }}</h2></a>
-      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-      <p>{{ .Summary | plainify | truncate 180 }}</p>
-    </article>
-  {{ else }}
-    <p>No articles in this section.</p>
-  {{ end }}
-</section>
+  <div class="section-main">
+    <section class="terminal-card">
+      <h1>{{ .Title }}</h1>
+      {{ with .Content }}<div class="content">{{ . }}</div>{{ end }}
+    </section>
+
+    <section class="post-list">
+      {{ range .Pages }}
+        <article class="post-item">
+          <a href="{{ partial "permalink.html" . }}"><h2>{{ .Title }}</h2></a>
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+          <p>{{ .Summary | plainify | truncate 180 }}</p>
+        </article>
+      {{ else }}
+        <p>No articles in this section.</p>
+      {{ end }}
+    </section>
+  </div>
+</div>
 {{ end }}
