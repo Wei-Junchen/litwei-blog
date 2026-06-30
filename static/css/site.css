@@ -646,3 +646,16 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
     padding-right: 0 !important;
   }
 }
+
+/* Mobile keeps the older compact article frame */
+@media (max-width: 760px) {
+  .article.terminal-card {
+    padding: 1rem !important;
+  }
+
+  .article .article-header,
+  .article .content {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
