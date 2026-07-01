@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Litwei W icon: lightning, vector, capacitor and inductor">
+  <defs>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.15" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .stroke { fill:none; stroke:#79ffc2; stroke-linecap:round; stroke-linejoin:round; }
+      .glow { fill:none; stroke:#00ff88; stroke-linecap:round; stroke-linejoin:round; opacity:.20; filter:url(#softGlow); }
+    </style>
+  </defs>
+
+  <rect width="128" height="128" rx="24" fill="#050807"/>
+  <rect x="8.5" y="8.5" width="111" height="111" rx="20" fill="none" stroke="#1f7a4d" stroke-width="2.25" opacity=".92"/>
+
+  <!-- halo behind the four symbolic W legs -->
+  <g class="glow" stroke-width="12">
+    <path d="M31 22 L22 60 L38 55 L44 100"/>
+    <path d="M44 100 L63 31"/>
+    <path d="M63 31 L69.5 55.5"/>
+    <path d="M76.5 76.5 L84 100"/>
+    <g transform="translate(84 100) rotate(18)">
+      <path d="M0 0 L0 -7 C12 -10 12 -21 0 -24 C12 -27 12 -38 0 -41 C12 -44 12 -55 0 -58 C12 -62 12 -72 3 -77"/>
+    </g>
+  </g>
+
+  <g filter="url(#softGlow)">
+    <!-- 1: lightning leg -->
+    <path class="stroke" d="M31 22 L22 60 L38 55 L44 100" stroke-width="8.8"/>
+
+    <!-- 2: vector leg: use a clean straight vector-like segment without arrowhead -->
+    <path class="stroke" d="M44 100 L63 31" stroke-width="8.8"/>
+    <path class="stroke" d="M50.5 74 L58.5 46" stroke-width="3.8" opacity=".95"/>
+
+    <!-- 3: capacitor leg -->
+    <path class="stroke" d="M63 31 L69.5 55.5" stroke-width="8.8"/>
+    <path class="stroke" d="M76.5 76.5 L84 100" stroke-width="8.8"/>
+    <path class="stroke" d="M62.4 63.5 L78.6 58.5 M66.7 77.2 L82.9 72.2" stroke-width="5.2" opacity=".95"/>
+
+    <!-- 4: inductor leg -->
+    <g transform="translate(84 100) rotate(18)">
+      <path class="stroke" d="M0 0 L0 -7 C12 -10 12 -21 0 -24 C12 -27 12 -38 0 -41 C12 -44 12 -55 0 -58 C12 -62 12 -72 3 -77" stroke-width="8.2"/>
+    </g>
+  </g>
+</svg>
