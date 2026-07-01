@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{ .Description | default site.Params.description }}">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} | {{ site.Title }}{{ end }}</title>
+  <link rel="icon" href="{{ "favicon.svg?v=20260702-6" | relURL }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ "css/site.css?v=20260702-15" | relURL }}">
 </head>
 <body>
