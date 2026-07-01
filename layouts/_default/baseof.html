@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{ .Description | default site.Params.description }}">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} | {{ site.Title }}{{ end }}</title>
-  <link rel="stylesheet" href="{{ "css/site.css?v=20260702-8" | relURL }}">
+  <link rel="stylesheet" href="{{ "css/site.css?v=20260702-15" | relURL }}">
 </head>
 <body>
+  <canvas class="matrix-rain" aria-hidden="true"></canvas>
+
   <header class="site-header">
     <div class="brand-group">
       <a class="brand" href="https://litwei.fun/">{{ site.Title }}</a>
@@ -38,5 +40,6 @@
 
   <script src="{{ "js/search.js?v=20260702-1" | relURL }}" defer></script>
   <script src="{{ "js/archive.js?v=20260702-2" | relURL }}" defer></script>
+  <script src="{{ "js/matrix-rain.js?v=20260702-2" | relURL }}" defer></script>
 </body>
 </html>

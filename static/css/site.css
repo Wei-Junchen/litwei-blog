@@ -15,6 +15,61 @@ body {
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  isolation: isolate;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 18%, rgba(0, 255, 136, 0.08) 31%, transparent 45% 100%),
+    linear-gradient(245deg, transparent 0 22%, rgba(31, 122, 77, 0.16) 39%, transparent 53% 100%),
+    repeating-linear-gradient(90deg, rgba(0, 255, 136, 0.035) 0 1px, transparent 1px 120px);
+  background-size: 180% 180%, 160% 160%, 120px 120px;
+  animation: ambient-razor-grid 18s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+
+.matrix-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.matrix-rain.is-active {
+  opacity: 0.72;
+}
+
+@keyframes ambient-razor-grid {
+  from {
+    background-position: 0% 14%, 100% 86%, 0 0;
+  }
+  to {
+    background-position: 100% 22%, 0% 72%, 36px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
+}
+
+.site-header,
+.site-main,
+.site-footer {
+  position: relative;
+  z-index: 2;
 }
 a { color: var(--green); text-decoration: none; }
 a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
@@ -528,10 +583,10 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
 }
 
 .site-footer.site-footer {
-  width: 100vw !important;
-  max-width: 100vw !important;
-  margin-left: calc(50% - 50vw) !important;
-  margin-right: calc(50% - 50vw) !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
   display: grid !important;
@@ -598,7 +653,7 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
   grid-template-columns: 3.25rem minmax(0, 1fr) 0 !important;
 }
 
-@media (min-width: 1181px) {
+@media (min-width: 1440px) {
   .section-main {
     max-width: none !important;
   }
@@ -606,7 +661,7 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
 
 
 /* Extra-wide desktop reading layout */
-@media (min-width: 1181px) {
+@media (min-width: 1440px) {
   .site-header,
   .site-main {
     max-width: 1560px !important;
@@ -635,7 +690,7 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
 
 
 /* Article inner frame: equal padding inside the card */
-@media (min-width: 1181px) {
+@media (min-width: 1440px) {
   .article.terminal-card {
     padding: clamp(2rem, 2.6vw, 3.5rem) !important;
   }
@@ -658,4 +713,113 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
+}
+
+/* Narrow screens stack the archive above the section content. */
+@media (max-width: 760px) {
+  .section-layout,
+  .section-layout.archive-collapsed {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  .section-archive,
+  .section-main {
+    grid-column: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .section-archive {
+    order: -1 !important;
+    position: static !important;
+    top: auto !important;
+  }
+}
+
+/* Mid-width screens avoid the hard 1180/1181 layout snap. */
+@media (min-width: 1181px) and (max-width: 1439px) {
+  .site-header,
+  .site-main {
+    max-width: 1200px !important;
+  }
+
+  .home-main {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .section-layout,
+  .section-layout.archive-collapsed {
+    grid-template-columns: 230px minmax(0, 1fr) 0 !important;
+    justify-content: stretch !important;
+  }
+
+  .section-main {
+    grid-column: 2 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .section-archive {
+    grid-column: 1 !important;
+  }
+}
+
+/* Wide screens keep the reading column bounded and let the ambient background breathe. */
+@media (min-width: 1440px) {
+  .site-header {
+    max-width: 980px !important;
+  }
+
+  .site-main {
+    max-width: 1480px !important;
+  }
+
+  .header-search {
+    max-width: 340px !important;
+  }
+
+  .home-main {
+    max-width: 980px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .section-layout {
+    grid-template-columns: 220px minmax(0, 980px) 220px !important;
+    gap: 1.25rem !important;
+    justify-content: center !important;
+  }
+
+  .section-layout.archive-collapsed {
+    grid-template-columns: 3.25rem minmax(0, 980px) 3.25rem !important;
+  }
+
+  .section-main {
+    grid-column: 2 !important;
+    width: 100% !important;
+    max-width: 980px !important;
+  }
+
+  .section-archive {
+    grid-column: 1 !important;
+  }
+}
+
+/* Keep the primary top and home reading widths stable across breakpoints. */
+.site-header {
+  max-width: 980px !important;
+}
+
+.home-main {
+  max-width: 980px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.header-search {
+  max-width: 340px !important;
 }

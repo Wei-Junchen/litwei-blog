@@ -6,6 +6,9 @@
     <article class="article terminal-card">
       <header class="article-header article-meta-only">
         <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006-01-02" }}</time>
+        {{ if not (findRE "<h1" .Content 1) }}
+          <h1>{{ .Title }}</h1>
+        {{ end }}
       </header>
       <div class="content">
         {{ .Content }}
