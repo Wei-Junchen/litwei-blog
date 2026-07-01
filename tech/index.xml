@@ -1,4 +1,29 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tech on Litwei Blog</title><link>https://litwei.fun/tech/</link><description>Recent content in Tech on Litwei Blog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Wed, 14 Jan 2026 00:00:00 +0800</lastBuildDate><atom:link href="https://litwei.fun/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>Clash/Mihomo TUN 模式完全解析</title><link>https://litwei.fun/tech/2026_1_14_clash_tun_tutorial/</link><pubDate>Wed, 14 Jan 2026 00:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_1_14_clash_tun_tutorial/</guid><description>&lt;h1 id="clashmihomo-tun-模式完全解析"&gt;Clash/Mihomo TUN 模式完全解析&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tech on Litwei Blog</title><link>https://litwei.fun/tech/</link><description>Recent content in Tech on Litwei Blog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Wed, 01 Jul 2026 00:00:00 +0800</lastBuildDate><atom:link href="https://litwei.fun/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>Linux 是如何理解 SoC 里的 I2C 控制器的</title><link>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</link><pubDate>Wed, 01 Jul 2026 00:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</guid><description>&lt;h1 id="linux-是如何理解-soc-里的-i2c-控制器的"&gt;Linux 是如何理解 SoC 里的 I2C 控制器的&lt;/h1&gt;
+&lt;p&gt;最近在研究 &lt;em&gt;Sispeed&lt;/em&gt; 的 &lt;em&gt;Licheerv Nano&lt;/em&gt; 中 &lt;em&gt;GC4653&lt;/em&gt; 相机超频CLK到37.125MHz-80fps时，遇到了不少问题，比如VB Pool段错误/VPSS JOB异常归零，于是决定刨根问底，想从底层研究整个初始化以及取帧流程。便开始理解 Linux 设备树、I2C 控制器、&lt;code&gt;/dev/i2c-X&lt;/code&gt; 和内核驱动之间的关系。这个问题一开始看起来很绕，但如果分层看，其实逻辑非常清晰。&lt;/p&gt;
+&lt;h2 id="-目录"&gt;📚 目录&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="#1-i2c-%E6%8E%A7%E5%88%B6%E5%99%A8%E5%92%8C-i2c-%E5%A4%96%E8%AE%BE%E4%B8%8D%E6%98%AF%E4%B8%80%E5%9B%9E%E4%BA%8B"&gt;I2C 控制器和 I2C 外设不是一回事&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#2-linux-%E6%80%8E%E4%B9%88%E7%9F%A5%E9%81%93-soc-%E9%87%8C%E6%9C%89%E5%93%AA%E4%BA%9B%E6%8E%A7%E5%88%B6%E5%99%A8"&gt;Linux 怎么知道 SoC 里有哪些控制器？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#3-%E6%9C%89-dts-%E8%BF%98%E4%B8%8D%E5%A4%9F%E8%BF%98%E5%BF%85%E9%A1%BB%E6%9C%89%E5%8C%B9%E9%85%8D%E7%9A%84%E9%A9%B1%E5%8A%A8"&gt;有 DTS 还不够，还必须有匹配的驱动&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#4-%E5%A6%82%E6%9E%9C%E6%B2%A1%E6%9C%89%E5%8C%B9%E9%85%8D%E9%A9%B1%E5%8A%A8%E4%BC%9A%E6%80%8E%E4%B9%88%E6%A0%B7"&gt;如果没有匹配驱动会怎么样？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#5-%E4%BB%80%E4%B9%88%E6%98%AF-i2c_adapter"&gt;什么是 i2c_adapter？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#6-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-i2c_adapter"&gt;为什么需要 i2c_adapter？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#7-i2c-%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E8%A6%81%E6%8F%90%E4%BE%9B%E4%BB%80%E4%B9%88%E7%BB%9F%E4%B8%80%E6%8E%A5%E5%8F%A3"&gt;I2C 控制器驱动要提供什么统一接口？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#8-dev-%E4%B8%8B%E9%9D%A2%E7%9A%84%E4%B8%9C%E8%A5%BF%E6%98%AF%E4%BB%80%E4%B9%88"&gt;&lt;code&gt;/dev&lt;/code&gt; 下面的东西是什么？&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#9-%E6%80%BB%E7%BB%93"&gt;总结&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="1-i2c-控制器和-i2c-外设不是一回事"&gt;1. I2C 控制器和 I2C 外设不是一回事&lt;/h2&gt;
+&lt;p&gt;首先要区分两个概念：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;I2C 控制器：通常在 SoC 内部
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;I2C 外设：通常在 SoC 外部的 PCB 板子上
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;比如一颗 SoC 里面可能集成了多个 I2C 控制器：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;SoC 内部
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── CPU
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── GPIO 控制器
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── UART 控制器
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── SPI 控制器
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;└── I2C 控制器 0/1/2/3/4
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这些 I2C 控制器本质上是一组 MMIO 寄存器和硬件状态机，负责产生 SCL 时钟、控制 SDA 数据线、处理 ACK/NACK、中断、传输状态等。&lt;/p&gt;</description></item><item><title>Clash/Mihomo TUN 模式完全解析</title><link>https://litwei.fun/tech/2026_1_14_clash_tun_tutorial/</link><pubDate>Wed, 14 Jan 2026 00:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_1_14_clash_tun_tutorial/</guid><description>&lt;h1 id="clashmihomo-tun-模式完全解析"&gt;Clash/Mihomo TUN 模式完全解析&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;从 Wireshark 抓包理解透明代理的工作原理&lt;/p&gt;
 &lt;/blockquote&gt;
