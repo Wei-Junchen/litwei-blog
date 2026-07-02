@@ -69,6 +69,14 @@ body::before {
 .site-main,
 .site-footer {
   position: relative;
+}
+
+.site-header {
+  z-index: 50;
+}
+
+.site-main,
+.site-footer {
   z-index: 2;
 }
 a { color: var(--green); text-decoration: none; }
