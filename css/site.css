@@ -121,7 +121,8 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
 
 .site-search-results {
   position: absolute;
-  right: 0;
+  left: 0;
+  right: auto;
   top: calc(100% + 0.5rem);
   z-index: 1000;
   width: min(520px, 92vw);
@@ -167,6 +168,49 @@ a:hover { text-shadow: 0 0 8px rgba(0, 255, 136, .75); }
 }
 .hero h1, .article h1 { color: var(--green); margin-top: 0; }
 .eyebrow, time, .site-footer { color: var(--muted); }
+.hero .eyebrow {
+  color: var(--green);
+  font-size: clamp(1.65rem, 2.5vw, 2.45rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 1.15rem;
+  text-shadow: 0 0 14px rgba(0, 255, 136, 0.42);
+}
+
+.terminal-typing {
+  min-height: 1.7em;
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: clamp(0.9rem, 1.08vw, 1rem);
+  line-height: 1.75;
+}
+
+.terminal-typing-prompt {
+  color: var(--green);
+  margin-right: 0.45rem;
+}
+
+.terminal-typing-output {
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.terminal-typing-cursor {
+  display: inline-block;
+  width: 0.48em;
+  height: 1em;
+  margin-left: 0.12rem;
+  background: var(--green);
+  vertical-align: -0.13em;
+  animation: terminal-cursor-blink 0.9s steps(2, jump-none) infinite;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.55);
+}
+
+@keyframes terminal-cursor-blink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
 .post-list { display: grid; gap: 1rem; margin-top: 2rem; }
 .post-item h2, .post-item h3 { margin: 0 0 .25rem; }
 .content img { max-width: 100%; border-radius: 8px; }
