@@ -1,6 +1,6 @@
 ---
 title: "Linux 是如何理解 SoC 里的 I2C 控制器的"
-date: 2026-07-1T23:00:00+08:00
+date: 2026-07-01T23:00:00+08:00
 draft: false
 tags: []
 categories: ["tech"]
