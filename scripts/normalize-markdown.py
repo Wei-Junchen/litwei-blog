@@ -9,7 +9,7 @@ content...
 
 The script generates/updates minimal front matter:
 - title: first H1, else existing title, else filename
-- date: YYYY_MM_DD / YYYY-MM-DD in filename, else existing date, else file mtime
+- date: existing date, else YYYY_MM_DD / YYYY-MM-DD in filename, else file mtime
 - draft: false when missing
 - comments: true when missing
 - categories: section name when missing
@@ -63,14 +63,14 @@ def title_from(path: Path, body: str, fm: dict[str, str]) -> str:
 
 
 def date_from(path: Path, fm: dict[str, str]) -> str:
+    if fm.get("date"):
+        return fm["date"].strip().strip('"\'')
     match = DATE_IN_NAME.search(path.stem)
     if match:
         y = int(match.group("y"))
         m = int(match.group("m"))
         d = int(match.group("d"))
         return f"{y:04d}-{m:02d}-{d:02d}T00:00:00+08:00"
-    if fm.get("date"):
-        return fm["date"].strip().strip('"\'')
     ts = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).astimezone()
     return ts.strftime("%Y-%m-%dT%H:%M:%S%z")
 
