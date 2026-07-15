@@ -1,0 +1,287 @@
+<!doctype html><html lang=zh-cn data-theme=dark><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="技术、游戏、生活与项目记录。"><title>物理引擎开发-Integrator的探索(2) | Litwei Blog</title><link rel=icon href="/favicon.svg?v=20260702-6" type=image/svg+xml><link rel=stylesheet href="/css/site.css?v=20260703-5"><script>window.MathJax={tex:{displayMath:[["\\[","\\]"],["$$","$$"]],inlineMath:[["\\(","\\)"]]},loader:{load:["ui/safe"]}}</script><script id=MathJax-script defer src=https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js></script></head><body><canvas class=matrix-rain aria-hidden=true></canvas><header class=site-header><div class=brand-group><a class=brand href=https://litwei.fun/>Litwei Blog</a></div><div class=header-search role=search><input id=site-search class=site-search-input type=search placeholder="search articles..." autocomplete=off aria-label="search articles"><div id=site-search-results class=site-search-results hidden></div></div><nav class=nav aria-label="main navigation"><a href=https://tech.litwei.fun/>Tech</a>
+<a href=https://game.litwei.fun/>Game</a>
+<a href=https://life.litwei.fun/>Life</a></nav></header><main class=site-main><div class=section-layout><details class="section-archive terminal-card" data-archive-section=tech aria-label="tech archive" open><summary class=archive-head><span class=archive-title>$ archive/tech</span>
+<span class=archive-toggle aria-hidden=true>«</span></summary><div class=archive-tree><details class=archive-year open><summary>2026</summary><details class=archive-month open><summary>2026.07</summary><ul><li><a href=https://tech.litwei.fun/2026_7_16_physicsengine_integrator1/>物理引擎开发-Integrator的探索(1)</a>
+<time datetime=2026-07-16>07-16</time></li><li><a href=https://tech.litwei.fun/2026_7_16_physicsengine_integrator2/>物理引擎开发-Integrator的探索(2)</a>
+<time datetime=2026-07-16>07-16</time></li><li><a href=https://tech.litwei.fun/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/>Linux 是如何理解 SoC 里的 I2C 控制器的</a>
+<time datetime=2026-07-01>07-01</time></li></ul></details><details class=archive-month open><summary>2026.01</summary><ul><li><a href=https://tech.litwei.fun/2026_1_14_clash_tun_tutorial/>Clash/Mihomo TUN 模式完全解析</a>
+<time datetime=2026-01-14>01-14</time></li></ul></details></details><details class=archive-year open><summary>2025</summary><details class=archive-month open><summary>2025.12</summary><ul><li><a href=https://tech.litwei.fun/2025_12_17_value%E7%9A%84%E5%85%B3%E7%B3%BB/>lvalue,xvalue,prvalue的关系</a>
+<time datetime=2025-12-17>12-17</time></li><li><a href=https://tech.litwei.fun/2025_12_17_%E4%B8%87%E8%83%BD%E5%BC%95%E7%94%A8%E5%AE%8C%E7%BE%8E%E8%BD%AC%E5%8F%91/>万能引用与完美转发</a>
+<time datetime=2025-12-17>12-17</time></li><li><a href=https://tech.litwei.fun/2025_12_16_shell%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%AD%A6%E4%B9%A0/>shell快捷键学习</a>
+<time datetime=2025-12-16>12-16</time></li></ul></details></details></div></details><div class=section-main><article class="article terminal-card"><header class="article-header article-meta-only"><time datetime=2026-07-16T02:50:00+08:00>2026-07-16</time></header><div class=content><h1 id=物理引擎开发-integrator的探索2>物理引擎开发-Integrator的探索(2)</h1><p>上一篇中，我把高阶 ODE、非线性系统和空间离散后的 PDE 统一为：</p>\[
+\mathbf y'=\mathbf f(t,\mathbf y)
+\]<p>但“形式统一”并不意味着所有系统都适合使用同一种时间推进格式。</p><p>对于简谐振子、单摆和行星轨道这类保守系统，真正重要的不只是单步误差，还包括数值方法是否保留原系统的长期几何结构。</p><p>这一篇从显式 Euler 在简谐振子上的失稳出发，继续讨论：</p><ul><li>矩阵指数与精确状态转移；</li><li>相空间面积与辛条件；</li><li><code>symplectic</code> 的词源；</li><li>Kick–Drift–Kick 的构造；</li><li>行星轨道的 Velocity Verlet；</li><li>拉格朗日形式与哈密顿形式的区别。</li></ul><hr><h2 id=1-简谐振子暴露了显式-euler-的结构问题>1. 简谐振子暴露了显式 Euler 的结构问题</h2><p>考虑简谐振子：</p>\[
+q''+\omega^2q=0
+\]<p>定义：</p>\[
+\mathbf y=
+\begin{bmatrix}
+q\\
+v
+\end{bmatrix}
+\]<p>则：</p><h1 id=mathbf-y>[
+\mathbf y'</h1><p>A\mathbf y,\qquad
+A=
+\begin{bmatrix}
+0&amp;1\
+-\omega^2&amp;0
+\end{bmatrix}
+]</p><p>精确解经过时间 \(h\) 的更新为：</p>\[
+\mathbf y(t+h)=e^{hA}\mathbf y(t)
+\]<p>矩阵指数定义为：</p><h1 id=eha>[
+e^{hA}</h1><p>I+hA+\frac{(hA)^2}{2!}
++\frac{(hA)^3}{3!}+\cdots
+]</p><p>由于：</p>\[
+A^2=-\omega^2I
+\]<p>可以将偶数项和奇数项分别整理成余弦和正弦级数，最终得到：</p><h1 id=eha-1>[
+\boxed{
+e^{hA}</h1><p>\begin{bmatrix}
+\cos(\omega h)&\dfrac{\sin(\omega h)}{\omega}\
+-\omega\sin(\omega h)&\cos(\omega h)
+\end{bmatrix}
+}
+]</p><p>这个精确更新矩阵满足：</p>\[
+\det(e^{hA})=1
+\]<p>其特征值为：</p>\[
+e^{\pm i\omega h}
+\]<p>模长恒为 1，所以解析解始终有界、周期振荡。</p><p>显式 Euler 的更新矩阵为：</p><h1 id=m_eiha>[
+M_E=I+hA</h1><p>\begin{bmatrix}
+1&amp;h\
+-\omega^2h&amp;1
+\end{bmatrix}
+]</p><p>其行列式：</p>\[
+\boxed{
+\det M_E=1+\omega^2h^2>1
+}
+\]<p>特征值为：</p>\[
+1\pm i\omega h
+\]<p>模长：</p>\[
+\sqrt{1+\omega^2h^2}>1
+\]<p>因此，显式 Euler 每一步都在相空间中人为放大面积，长期轨迹会向外螺旋。</p><p>这里的问题不在简谐振子本身，而在离散更新映射没有继承连续系统的几何结构。</p><hr><h2 id=2-辛积分器到底是什么>2. 辛积分器到底是什么</h2><p><code>symplectic</code> 可以拆成：</p>\[
+\text{sym-}+\text{plect-}+\text{-ic}
+\]<p>其中：</p><ul><li><code>sym-</code>：共同、一起；</li><li><code>plect-</code>：编织、交织；</li><li><code>-ic</code>：形容词后缀。</li></ul><p>词源上可以理解为：</p>\[
+\boxed{
+\text{交织在一起的}
+}
+\]<p>在哈密顿力学中，位置 \(q\) 和共轭动量 \(p\) 并不是两组互不相关的变量，而是通过反对称结构彼此耦合。</p><p>对于一个自由度：</p>\[
+z=
+\begin{bmatrix}
+q\\
+p
+\end{bmatrix}
+\]<p>定义：</p>\[
+J=
+\begin{bmatrix}
+0&1\\
+-1&0
+\end{bmatrix}
+\]<p>哈密顿方程可写成：</p>\[
+\boxed{
+\dot z=J\nabla H(z)
+}
+\]<p>取两个微小扰动向量 \(u,v\)，则：</p>\[
+u^TJv
+\]<p>表示它们在 \(q-p\) 相平面中张成的有向面积。</p><p>如果数值更新映射的 Jacobian 为 \(S\)，那么扰动经过一步更新后变成：</p>\[
+u_{\text{new}}=Su,\qquad
+v_{\text{new}}=Sv
+\]<p>更新后的辛面积为：</p><h1 id=sutjsv>[
+(Su)^TJ(Sv)</h1><p>u^TS^TJSv
+]</p><p>如果要求它对任意 \(u,v\) 都与原来相等：</p>\[
+u^TS^TJSv=u^TJv
+\]<p>就必须有：</p>\[
+\boxed{
+S^TJS=J
+}
+\]<p>这就是辛映射的矩阵条件。</p><p>在二维情况下，它等价于：</p>\[
+\det S=1
+\]<p>即保持相平面有向面积。</p><p>但在更高维情况下，\(\det S=1\) 只代表保总体积，并不足以保证辛。辛结构还要求保持每一对共轭变量之间的几何关系。</p><hr><h2 id=3-如何真正构造一个辛积分器>3. 如何真正构造一个辛积分器</h2><p>重要的是：</p><blockquote><p>\(S^TJS=J\) 更适合用来验证，而不是用来凭空猜测积分格式。</p></blockquote><p>实用的构造方法是：</p>\[
+\boxed{
+\text{写出哈密顿量}
+\rightarrow
+\text{分裂哈密顿量}
+\rightarrow
+\text{精确推进子系统}
+\rightarrow
+\text{复合子流}
+}
+\]<p>考虑可分离哈密顿量：</p>\[
+H(q,p)=T(p)+V(q)
+\]<p>动能部分：</p>\[
+H=T(p)
+\]<p>对应：</p>\[
+\dot q=\frac{\partial T}{\partial p},\qquad
+\dot p=0
+\]<p>所以它可以精确推进：</p><h1 id=q_textnew>[
+q_{\text{new}}</h1><p>q+h\frac{\partial T}{\partial p}
+]</p><p>这一步称为 Drift。</p><p>势能部分：</p>\[
+H=V(q)
+\]<p>对应：</p>\[
+\dot q=0,\qquad
+\dot p=-\frac{\partial V}{\partial q}
+\]<p>所以可以精确推进：</p><h1 id=p_textnew>[
+p_{\text{new}}</h1><p>p-h\frac{\partial V}{\partial q}
+]</p><p>这一步称为 Kick。</p><p>对称组合：</p>\[
+\boxed{
+\text{Kick}_{h/2}
+\rightarrow
+\text{Drift}_{h}
+\rightarrow
+\text{Kick}_{h/2}
+}
+\]<p>就是 Velocity Verlet。</p><p>由于每个子步骤都是某个哈密顿子系统的精确流，而精确哈密顿流是辛的，辛映射的复合仍然辛，因此整个算法天然保持辛结构。</p><hr><h2 id=4-行星轨道中的辛积分器>4. 行星轨道中的辛积分器</h2><p>考虑单位质量的二维开普勒问题：</p><h1 id=hmathbf-rmathbf-p>[
+H(\mathbf r,\mathbf p)</h1><h2 id=frac12mathbf-p2>\frac12|\mathbf p|^2</h2><p>\frac{\mu}{|\mathbf r|}
+]</p><p>其中：</p>\[
+\mathbf r=
+\begin{bmatrix}
+x\\y
+\end{bmatrix},
+\qquad
+\mathbf p=
+\begin{bmatrix}
+v_x\\v_y
+\end{bmatrix}
+\]<p>哈密顿量天然分裂成：</p>\[
+T(\mathbf p)=\frac12|\mathbf p|^2
+\]<p>和：</p>\[
+V(\mathbf r)=-\frac{\mu}{|\mathbf r|}
+\]<p>哈密顿方程是：</p>\[
+\dot{\mathbf r}=\mathbf p
+\]<h1 id=dotmathbf-p>[
+\dot{\mathbf p}</h1><p>-\mu\frac{\mathbf r}{|\mathbf r|^3}
+]</p><p>Velocity Verlet 为：</p><h1 id=mathbf-v_nfrac12>[
+\mathbf v_{n+\frac12}</h1><h2 id=mathbf-v_n>\mathbf v_n</h2><p>\frac h2
+\mu\frac{\mathbf r_n}{|\mathbf r_n|^3}
+]</p><h1 id=mathbf-r_n1>[
+\mathbf r_{n+1}</h1><p>\mathbf r_n+h\mathbf v_{n+\frac12}
+]</p><h1 id=mathbf-v_n1>[
+\mathbf v_{n+1}</h1><h2 id=mathbf-v_nfrac12-1>\mathbf v_{n+\frac12}</h2><p>\frac h2
+\mu\frac{\mathbf r_{n+1}}{|\mathbf r_{n+1}|^3}
+]</p><p>代码结构：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>State</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    Eigen<span style=color:#f92672>::</span>Vector2d r;
+</span></span><span style=display:flex><span>    Eigen<span style=color:#f92672>::</span>Vector2d v;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Eigen<span style=color:#f92672>::</span>Vector2d gravityAcceleration(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> Eigen<span style=color:#f92672>::</span>Vector2d<span style=color:#f92672>&amp;</span> r,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>double</span> mu)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>double</span> radius <span style=color:#f92672>=</span> r.norm();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span>mu <span style=color:#f92672>*</span> r <span style=color:#f92672>/</span> (radius <span style=color:#f92672>*</span> radius <span style=color:#f92672>*</span> radius);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>State <span style=color:#a6e22e>velocityVerletStep</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> State<span style=color:#f92672>&amp;</span> state,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>double</span> h,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>double</span> mu)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> Eigen<span style=color:#f92672>::</span>Vector2d a0 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        gravityAcceleration(state.r, mu);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> Eigen<span style=color:#f92672>::</span>Vector2d vHalf <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        state.v <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.5</span> <span style=color:#f92672>*</span> h <span style=color:#f92672>*</span> a0;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> Eigen<span style=color:#f92672>::</span>Vector2d rNext <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        state.r <span style=color:#f92672>+</span> h <span style=color:#f92672>*</span> vHalf;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> Eigen<span style=color:#f92672>::</span>Vector2d a1 <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        gravityAcceleration(rNext, mu);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> Eigen<span style=color:#f92672>::</span>Vector2d vNext <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        vHalf <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.5</span> <span style=color:#f92672>*</span> h <span style=color:#f92672>*</span> a1;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>        rNext,
+</span></span><span style=display:flex><span>        vNext
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这里最关键的不是手工计算更新矩阵的行列式，而是识别出：</p>\[
+H=T(p)+V(q)
+\]<p>并把系统拆成可以分别精确推进的 Kick 和 Drift。</p><hr><h2 id=5-拉格朗日形式与哈密顿形式>5. 拉格朗日形式与哈密顿形式</h2><p>拉格朗日量通常写成：</p>\[
+\boxed{
+L(q,\dot q,t)=T-V
+}
+\]<p>它使用位置和速度。</p><p>运动方程由 Euler-Lagrange 方程给出：</p><h2 id=right>[
+\boxed{
+\frac{d}{dt}
+\left(
+\frac{\partial L}{\partial\dot q_i}
+\right)</h2><p>\frac{\partial L}{\partial q_i}
+=0
+}
+]</p><p>定义共轭动量：</p>\[
+\boxed{
+p_i=\frac{\partial L}{\partial\dot q_i}
+}
+\]<p>然后通过 Legendre 变换定义哈密顿量：</p><h1 id=hqpt>[
+\boxed{
+H(q,p,t)</h1><p>\sum_i p_i\dot q_i-L(q,\dot q,t)
+}
+]</p><p>哈密顿方程为：</p>\[
+\boxed{
+\dot q_i=\frac{\partial H}{\partial p_i}
+}
+\]\[
+\boxed{
+\dot p_i=-\frac{\partial H}{\partial q_i}
+}
+\]<p>对于普通机械系统：</p>\[
+L=\frac12m\dot q^2-V(q)
+\]<p>有：</p>\[
+p=m\dot q
+\]<p>因此：</p>\[
+H=\frac{p^2}{2m}+V(q)
+\]<p>这时哈密顿量恰好等于总机械能。</p><p>但需要注意：</p><ul><li>拉格朗日量不是总能量；</li><li>共轭动量不一定等于机械动量；</li><li>哈密顿量也不总是简单的 \(T+V\)。</li></ul><p>拉格朗日形式更适合从广义坐标和约束出发建立模型，而哈密顿形式更适合相空间分析、守恒量研究和辛积分器构造。</p><hr><h2 id=6-术语本身也影响理解>6. 术语本身也影响理解</h2><p>这次讨论中另一个明显感受是，很多中文数学术语几乎不提供直觉。</p><p>例如：</p><ul><li>辛：symplectic，词源上是共同编织；</li><li>酉：unitary，与 unit、单位长度和内积保持有关；</li><li>正交：orthogonal，词根直接指向正角；</li><li>特征值：eigenvalue，其中德语 eigen 表示自身的、固有的。</li></ul><p>中文译名适合建立统一术语体系，但常常会切断词源中的图像感。</p><p>更有效的学习顺序可能是：</p>\[
+\boxed{
+\text{中文术语}
+\rightarrow
+\text{原文术语}
+\rightarrow
+\text{词根与历史}
+\rightarrow
+\text{严格定义}
+\rightarrow
+\text{最简单例子}
+\rightarrow
+\text{它保持了什么}
+}
+\]<p>例如辛结构：</p>\[
+\text{symplectic}
+\rightarrow
+\text{共同编织}
+\rightarrow
+S^TJS=J
+\rightarrow
+\text{保持 }dq\wedge dp
+\rightarrow
+\text{一自由度下保持相面积}
+\]<p>当术语的神秘感被拆开之后，概念本身往往比名字更接近直觉。</p><hr><hr><h2 id=7-本篇总结>7. 本篇总结</h2><p>显式 Euler 在简谐振子上的发散，并不是物理系统本身不稳定，而是离散更新矩阵满足：</p>\[
+\det(I+hA)>1
+\]<p>它在每一步都人为放大相空间面积。</p><p>辛积分器的目标不是严格保持每一步的原始能量，而是保持哈密顿系统的相空间结构：</p>\[
+\boxed{
+S^TJS=J
+}
+\]<p>在可分离哈密顿量</p>\[
+H(q,p)=T(p)+V(q)
+\]<p>下，可以分别精确推进动能流和势能流，再使用对称复合：</p>\[
+\boxed{
+\text{Kick}_{h/2}
+\rightarrow
+\text{Drift}_{h}
+\rightarrow
+\text{Kick}_{h/2}
+}
+\]<p>从而得到 Velocity Verlet。</p><p>这说明构造积分器时，真正应该关注的是系统本身的结构：</p><ul><li>普通非刚性系统关注局部误差；</li><li>刚性系统关注稳定域；</li><li>哈密顿系统关注辛结构；</li><li>约束系统关注约束漂移；</li><li>守恒律 PDE 关注离散守恒。</li></ul><p>Integrator 的设计最终不是“选择一个最高阶的方法”，而是：</p>\[
+\boxed{
+\text{选择与问题结构相匹配的时间离散方法}
+}
+\]</div></article><section class=comment-terminal id=comments aria-labelledby=comment-terminal-title data-comments-endpoint=/api/comments data-page-path=/tech/2026_7_16_physicsengine_integrator2/><div class=comment-title id=comment-terminal-title>--- comments section ---</div><div class=comment-list data-comment-list><p class=comment-hint>loading local comments...</p></div><form class=comment-form action=/api/comments method=POST data-turnstile-enabled=true><input type=hidden name=page_url value=https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/>
+<input type=hidden name=page_path value=/tech/2026_7_16_physicsengine_integrator2/>
+<input type=hidden name=page_title value=物理引擎开发-Integrator的探索(2)>
+<input type=hidden name=timestamp class=comment-timestamp>
+<input type=text name=_gotcha class=comment-honeypot tabindex=-1 autocomplete=off aria-hidden=true>
+<label><span>nickname / optional</span>
+<input type=text name=name placeholder=anonymous autocomplete=name>
+</label><label><span>email / optional</span>
+<input type=email name=email placeholder="optional, only stored locally" autocomplete=email>
+</label><label><span>comment *</span>
+<textarea name=comment rows=5 required placeholder="anonymous comments are welcome..."></textarea></label><div class=comment-auth><div class=cf-turnstile data-sitekey=0x4AAAAAADtgM_c7pUR80bzf data-theme=dark></div></div><p class=comment-hint data-comment-status>Nickname and email are optional. Comments are stored locally on this VPS.</p><button type=submit class=comment-submit>submit</button></form></section><link rel=stylesheet href="/css/comments.css?v=20260701-3"><script src=https://challenges.cloudflare.com/turnstile/v0/api.js async defer></script><script src="/js/comments.js?v=20260701-3" defer></script></div></div></main><footer class=site-footer><span class=site-footer-text>© 2026 Litwei</span></footer><script src="/js/search.js?v=20260702-1" defer></script><script src="/js/archive.js?v=20260702-2" defer></script><script src="/js/matrix-rain.js?v=20260703-1" defer></script><script src="/js/terminal-typing.js?v=20260703-4" defer></script></body></html>

@@ -1,4 +1,115 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tech on Litwei Blog</title><link>https://litwei.fun/tech/</link><description>Recent content in Tech on Litwei Blog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Wed, 01 Jul 2026 23:00:00 +0800</lastBuildDate><atom:link href="https://litwei.fun/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>Linux 是如何理解 SoC 里的 I2C 控制器的</title><link>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</link><pubDate>Wed, 01 Jul 2026 23:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</guid><description>&lt;h1 id="linux-是如何理解-soc-里的-i2c-控制器的"&gt;Linux 是如何理解 SoC 里的 I2C 控制器的&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tech on Litwei Blog</title><link>https://litwei.fun/tech/</link><description>Recent content in Tech on Litwei Blog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 16 Jul 2026 02:50:00 +0800</lastBuildDate><atom:link href="https://litwei.fun/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>物理引擎开发-Integrator的探索(1)</title><link>https://litwei.fun/tech/2026_7_16_physicsengine_integrator1/</link><pubDate>Thu, 16 Jul 2026 02:50:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_16_physicsengine_integrator1/</guid><description>&lt;h1 id="物理引擎开发-integrator的探索1"&gt;物理引擎开发-Integrator的探索(1)&lt;/h1&gt;
+&lt;p&gt;在最开始设计积分器时，我把微分方程理解为一种很窄的形式：&lt;/p&gt;
+\[
+y'=f(t,y)
+\]&lt;p&gt;因此最初的接口也自然写成类似：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;using&lt;/span&gt; Fn &lt;span style="color:#f92672"&gt;=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;double&lt;/span&gt;(&lt;span style="color:#f92672"&gt;*&lt;/span&gt;)(&lt;span style="color:#66d9ef"&gt;double&lt;/span&gt;, &lt;span style="color:#66d9ef"&gt;double&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这种接口可以处理一个标量一阶常微分方程，但很快就会遇到限制。&lt;/p&gt;
+&lt;p&gt;例如最简单的弹簧振子、单摆或质点动力学，通常都包含二阶导数：&lt;/p&gt;
+\[
+x''=f(t,x,x')
+\]&lt;p&gt;而多个相互耦合的质点、刚体、连续介质离散模型，则会进一步形成高维系统。&lt;/p&gt;
+&lt;p&gt;经过这一轮推导，我逐渐意识到：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;数值积分器真正应该处理的对象，不是某个特定阶数的微分方程，而是一个随时间演化的状态。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;换句话说，积分器的统一接口应当是：&lt;/p&gt;
+\[
+\boxed{
+\mathbf y'=\mathbf f(t,\mathbf y)
+}
+\]&lt;p&gt;其中 \(\mathbf y\) 可以是标量、向量，也可以是空间离散之后形成的数千维状态。&lt;/p&gt;
+&lt;p&gt;这篇文章记录我从二阶方程出发，逐步理解状态空间、高阶 ODE、非线性方程、PDE 半离散、刚性、隐式系统、辛积分器，以及哈密顿结构的过程。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="1-从二阶微分方程到一阶状态方程"&gt;1. 从二阶微分方程到一阶状态方程&lt;/h2&gt;
+&lt;p&gt;考虑常系数二阶方程：&lt;/p&gt;
+\[
+ax''+bx'+cx=0,\qquad a\neq0
+\]&lt;p&gt;定义状态变量：&lt;/p&gt;
+\[
+y_1=x,\qquad y_2=x'
+\]&lt;p&gt;于是：&lt;/p&gt;
+&lt;h1 id="endbmatrix"&gt;[
+\mathbf y=
+\begin{bmatrix}
+y_1\
+y_2
+\end{bmatrix}&lt;/h1&gt;
+&lt;p&gt;\begin{bmatrix}
+x\
+x'
+\end{bmatrix}
+]&lt;/p&gt;
+&lt;p&gt;逐个对状态变量求导：&lt;/p&gt;
+\[
+y_1'=x'=y_2
+\]&lt;p&gt;原方程可以解出：&lt;/p&gt;
+\[
+x''=-\frac ca x-\frac ba x'
+\]&lt;p&gt;因此：&lt;/p&gt;
+&lt;h1 id="y_2"&gt;[
+y_2'&lt;/h1&gt;
+&lt;p&gt;-\frac ca y_1-\frac ba y_2
+]&lt;/p&gt;
+&lt;p&gt;组合起来：&lt;/p&gt;</description></item><item><title>物理引擎开发-Integrator的探索(2)</title><link>https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/</link><pubDate>Thu, 16 Jul 2026 02:50:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/</guid><description>&lt;h1 id="物理引擎开发-integrator的探索2"&gt;物理引擎开发-Integrator的探索(2)&lt;/h1&gt;
+&lt;p&gt;上一篇中，我把高阶 ODE、非线性系统和空间离散后的 PDE 统一为：&lt;/p&gt;
+\[
+\mathbf y'=\mathbf f(t,\mathbf y)
+\]&lt;p&gt;但“形式统一”并不意味着所有系统都适合使用同一种时间推进格式。&lt;/p&gt;
+&lt;p&gt;对于简谐振子、单摆和行星轨道这类保守系统，真正重要的不只是单步误差，还包括数值方法是否保留原系统的长期几何结构。&lt;/p&gt;
+&lt;p&gt;这一篇从显式 Euler 在简谐振子上的失稳出发，继续讨论：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;矩阵指数与精确状态转移；&lt;/li&gt;
+&lt;li&gt;相空间面积与辛条件；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;symplectic&lt;/code&gt; 的词源；&lt;/li&gt;
+&lt;li&gt;Kick–Drift–Kick 的构造；&lt;/li&gt;
+&lt;li&gt;行星轨道的 Velocity Verlet；&lt;/li&gt;
+&lt;li&gt;拉格朗日形式与哈密顿形式的区别。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="1-简谐振子暴露了显式-euler-的结构问题"&gt;1. 简谐振子暴露了显式 Euler 的结构问题&lt;/h2&gt;
+&lt;p&gt;考虑简谐振子：&lt;/p&gt;
+\[
+q''+\omega^2q=0
+\]&lt;p&gt;定义：&lt;/p&gt;
+\[
+\mathbf y=
+\begin{bmatrix}
+q\\
+v
+\end{bmatrix}
+\]&lt;p&gt;则：&lt;/p&gt;
+&lt;h1 id="mathbf-y"&gt;[
+\mathbf y'&lt;/h1&gt;
+&lt;p&gt;A\mathbf y,\qquad
+A=
+\begin{bmatrix}
+0&amp;amp;1\
+-\omega^2&amp;amp;0
+\end{bmatrix}
+]&lt;/p&gt;
+&lt;p&gt;精确解经过时间 \(h\) 的更新为：&lt;/p&gt;
+\[
+\mathbf y(t+h)=e^{hA}\mathbf y(t)
+\]&lt;p&gt;矩阵指数定义为：&lt;/p&gt;
+&lt;h1 id="eha"&gt;[
+e^{hA}&lt;/h1&gt;
+&lt;p&gt;I+hA+\frac{(hA)^2}{2!}
++\frac{(hA)^3}{3!}+\cdots
+]&lt;/p&gt;
+&lt;p&gt;由于：&lt;/p&gt;
+\[
+A^2=-\omega^2I
+\]&lt;p&gt;可以将偶数项和奇数项分别整理成余弦和正弦级数，最终得到：&lt;/p&gt;
+&lt;h1 id="eha-1"&gt;[
+\boxed{
+e^{hA}&lt;/h1&gt;
+&lt;p&gt;\begin{bmatrix}
+\cos(\omega h)&amp;amp;\dfrac{\sin(\omega h)}{\omega}\
+-\omega\sin(\omega h)&amp;amp;\cos(\omega h)
+\end{bmatrix}
+}
+]&lt;/p&gt;</description></item><item><title>Linux 是如何理解 SoC 里的 I2C 控制器的</title><link>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</link><pubDate>Wed, 01 Jul 2026 23:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</guid><description>&lt;h1 id="linux-是如何理解-soc-里的-i2c-控制器的"&gt;Linux 是如何理解 SoC 里的 I2C 控制器的&lt;/h1&gt;
 &lt;p&gt;最近在研究 &lt;em&gt;Sispeed&lt;/em&gt; 的 &lt;em&gt;Licheerv Nano&lt;/em&gt; 中 &lt;em&gt;GC4653&lt;/em&gt; 相机超频CLK到37.125MHz-80fps时，遇到了不少问题，比如VB Pool段错误/VPSS JOB异常归零，于是决定刨根问底，想从底层研究整个初始化以及取帧流程。便开始理解 Linux 设备树、I2C 控制器、&lt;code&gt;/dev/i2c-X&lt;/code&gt; 和内核驱动之间的关系。这个问题一开始看起来很绕，但如果分层看，其实逻辑非常清晰。&lt;/p&gt;
 &lt;h2 id="-目录"&gt;📚 目录&lt;/h2&gt;
 &lt;ol&gt;
