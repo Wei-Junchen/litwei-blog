@@ -54,8 +54,7 @@ v
 则：
 
 \[
-\mathbf y'
-=
+\mathbf y' =
 A\mathbf y,\qquad
 A=
 \begin{bmatrix}
@@ -73,8 +72,7 @@ A=
 矩阵指数定义为：
 
 \[
-e^{hA}
-=
+e^{hA} =
 I+hA+\frac{(hA)^2}{2!}
 +\frac{(hA)^3}{3!}+\cdots
 \]
@@ -89,8 +87,7 @@ A^2=-\omega^2I
 
 \[
 \boxed{
-e^{hA}
-=
+e^{hA} =
 \begin{bmatrix}
 \cos(\omega h)&\dfrac{\sin(\omega h)}{\omega}\\
 -\omega\sin(\omega h)&\cos(\omega h)
@@ -115,8 +112,7 @@ e^{\pm i\omega h}
 显式 Euler 的更新矩阵为：
 
 \[
-M_E=I+hA
-=
+M_E=I+hA =
 \begin{bmatrix}
 1&h\\
 -\omega^2h&1
@@ -219,8 +215,7 @@ v_{\text{new}}=Sv
 更新后的辛面积为：
 
 \[
-(Su)^TJ(Sv)
-=
+(Su)^TJ(Sv) =
 u^TS^TJSv
 \]
 
@@ -294,8 +289,7 @@ H=T(p)
 所以它可以精确推进：
 
 \[
-q_{\text{new}}
-=
+q_{\text{new}} =
 q+h\frac{\partial T}{\partial p}
 \]
 
@@ -317,8 +311,7 @@ H=V(q)
 所以可以精确推进：
 
 \[
-p_{\text{new}}
-=
+p_{\text{new}} =
 p-h\frac{\partial V}{\partial q}
 \]
 
@@ -347,10 +340,8 @@ p-h\frac{\partial V}{\partial q}
 考虑单位质量的二维开普勒问题：
 
 \[
-H(\mathbf r,\mathbf p)
-=
-\frac12|\mathbf p|^2
--
+H(\mathbf r,\mathbf p) =
+\frac12|\mathbf p|^2 -
 \frac{\mu}{|\mathbf r|}
 \]
 
@@ -387,33 +378,27 @@ V(\mathbf r)=-\frac{\mu}{|\mathbf r|}
 \]
 
 \[
-\dot{\mathbf p}
-=
+\dot{\mathbf p} =
 -\mu\frac{\mathbf r}{|\mathbf r|^3}
 \]
 
 Velocity Verlet 为：
 
 \[
-\mathbf v_{n+\frac12}
-=
-\mathbf v_n
--
+\mathbf v_{n+\frac12} =
+\mathbf v_n -
 \frac h2
 \mu\frac{\mathbf r_n}{|\mathbf r_n|^3}
 \]
 
 \[
-\mathbf r_{n+1}
-=
+\mathbf r_{n+1} =
 \mathbf r_n+h\mathbf v_{n+\frac12}
 \]
 
 \[
-\mathbf v_{n+1}
-=
-\mathbf v_{n+\frac12}
--
+\mathbf v_{n+1} =
+\mathbf v_{n+\frac12} -
 \frac h2
 \mu\frac{\mathbf r_{n+1}}{|\mathbf r_{n+1}|^3}
 \]
@@ -491,8 +476,7 @@ L(q,\dot q,t)=T-V
 \frac{d}{dt}
 \left(
 \frac{\partial L}{\partial\dot q_i}
-\right)
--
+\right) -
 \frac{\partial L}{\partial q_i}
 =0
 }
@@ -510,8 +494,7 @@ p_i=\frac{\partial L}{\partial\dot q_i}
 
 \[
 \boxed{
-H(q,p,t)
-=
+H(q,p,t) =
 \sum_i p_i\dot q_i-L(q,\dot q,t)
 }
 \]

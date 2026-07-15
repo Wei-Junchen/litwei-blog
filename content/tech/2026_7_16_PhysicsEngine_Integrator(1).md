@@ -73,8 +73,7 @@ y_1=x,\qquad y_2=x'
 \begin{bmatrix}
 y_1\\
 y_2
-\end{bmatrix}
-=
+\end{bmatrix} =
 \begin{bmatrix}
 x\\
 x'
@@ -96,8 +95,7 @@ x''=-\frac ca x-\frac ba x'
 因此：
 
 \[
-y_2'
-=
+y_2' =
 -\frac ca y_1-\frac ba y_2
 \]
 
@@ -105,8 +103,7 @@ y_2'
 
 \[
 \boxed{
-\mathbf y'
-=
+\mathbf y' =
 \begin{bmatrix}
 0&1\\
 -\frac ca&-\frac ba
@@ -118,8 +115,7 @@ y_2'
 最初我曾尝试直接写：
 
 \[
-\begin{bmatrix}0&1\end{bmatrix}\mathbf y'
-=
+\begin{bmatrix}0&1\end{bmatrix}\mathbf y' =
 \begin{bmatrix}-c/a&-b/a\end{bmatrix}\mathbf y
 \]
 
@@ -140,8 +136,7 @@ y_1'=y_2
 也就是：
 
 \[
-\begin{bmatrix}1&0\end{bmatrix}\mathbf y'
-=
+\begin{bmatrix}1&0\end{bmatrix}\mathbf y' =
 \begin{bmatrix}0&1\end{bmatrix}\mathbf y
 \]
 
@@ -151,8 +146,7 @@ y_1'=y_2
 \begin{bmatrix}
 1&0\\
 0&1
-\end{bmatrix}\mathbf y'
-=
+\end{bmatrix}\mathbf y' =
 \begin{bmatrix}
 0&1\\
 -\frac ca&-\frac ba
@@ -187,8 +181,7 @@ x''
 那么：
 
 \[
-\mathbf y'
-=
+\mathbf y' =
 \begin{bmatrix}
 x'\\
 x''\\
@@ -205,8 +198,7 @@ y_1'=y_2,\qquad y_2'=y_3
 最后一行由原方程给出：
 
 \[
-x'''
-=
+x''' =
 -\frac da x
 -\frac ca x'
 -\frac ba x''
@@ -217,8 +209,7 @@ x'''
 
 \[
 \boxed{
-\mathbf y'
-=
+\mathbf y' =
 \begin{bmatrix}
 0&1&0\\
 0&0&1\\
@@ -285,8 +276,7 @@ x^{(n-1)}
 
 \[
 \boxed{
-\mathbf y_{n+1}
-=
+\mathbf y_{n+1} =
 \mathbf y_n+h\mathbf f(t_n,\mathbf y_n)
 }
 \]
@@ -306,8 +296,7 @@ x^{(n-1)}
 
 \[
 \boxed{
-\mathbf y_{n+1}
-=
+\mathbf y_{n+1} =
 \mathbf y_n+
 \frac h6
 \left(
@@ -405,16 +394,14 @@ State dydt = rhs(t, y);
 考虑不做小角度近似的单摆：
 
 \[
-\theta''
-=
+\theta'' =
 -\frac gl\sin\theta
 \]
 
 再加入二次阻力：
 
 \[
-\theta''
-=
+\theta'' =
 -\frac gl\sin\theta
 -\gamma\theta'|\theta'|
 \]
@@ -429,8 +416,7 @@ y_1=\theta,\qquad y_2=\omega=\theta'
 
 \[
 \boxed{
-\mathbf y'
-=
+\mathbf y' =
 \begin{bmatrix}
 y_2\\
 -\dfrac gl\sin y_1-\gamma y_2|y_2|
@@ -495,8 +481,7 @@ z=\phi(t,\mathbf y)
 此时仍能包装成普通 RHS：
 
 \[
-\mathbf f(t,\mathbf y)
-=
+\mathbf f(t,\mathbf y) =
 \begin{bmatrix}
 y_2\\
 \vdots\\
@@ -545,8 +530,7 @@ a(t)x'''+b(t)x''+c(t)x'+d(t)x+e(t)=0
 状态方程仍然是：
 
 \[
-\mathbf y'
-=
+\mathbf y' =
 \begin{bmatrix}
 0&1&0\\
 0&0&1\\
@@ -575,8 +559,7 @@ a(t)x'''+b(t)x''+c(t)x'+d(t)x+e(t)=0
 化成状态方程后会出现 \(1/\varepsilon\)：
 
 \[
-\mathbf y'
-=
+\mathbf y' =
 \begin{bmatrix}
 0&1\\
 -\frac1\varepsilon&-\frac1\varepsilon
@@ -652,8 +635,7 @@ x_i(t)
 内部质点满足：
 
 \[
-m\ddot x_i
-=
+m\ddot x_i =
 k(x_{i+1}-2x_i+x_{i-1})
 \]
 
@@ -781,8 +763,7 @@ u_i'=v_i
 \]
 
 \[
-v_i'
-=
+v_i' =
 c^2
 \frac{u_{i+1}-2u_i+u_{i-1}}{\Delta x^2}
 \]
@@ -882,8 +863,7 @@ z'=f_3(t,x,y,z)
 变成：
 
 \[
-\mathbf Y'
-=
+\mathbf Y' =
 \begin{bmatrix}
 f_1\\
 f_2\\
@@ -946,8 +926,7 @@ F(t,\mathbf y,\mathbf y')=0
 
 \[
 \boxed{
-\text{总误差}
-=
+\text{总误差} =
 \text{模型误差}
 +
 \text{离散误差}
