@@ -18,37 +18,41 @@ q''+\omega^2q=0
 q\\
 v
 \end{bmatrix}
-\]<p>则：</p><h1 id=mathbf-y>[
-\mathbf y'</h1><p>A\mathbf y,\qquad
+\]<p>则：</p>\[
+\mathbf y' =
+A\mathbf y,\qquad
 A=
 \begin{bmatrix}
-0&amp;1\
--\omega^2&amp;0
+0&1\\
+-\omega^2&0
 \end{bmatrix}
-]</p><p>精确解经过时间 \(h\) 的更新为：</p>\[
+\]<p>精确解经过时间 \(h\) 的更新为：</p>\[
 \mathbf y(t+h)=e^{hA}\mathbf y(t)
-\]<p>矩阵指数定义为：</p><h1 id=eha>[
-e^{hA}</h1><p>I+hA+\frac{(hA)^2}{2!}
+\]<p>矩阵指数定义为：</p>\[
+e^{hA} =
+I+hA+\frac{(hA)^2}{2!}
 +\frac{(hA)^3}{3!}+\cdots
-]</p><p>由于：</p>\[
+\]<p>由于：</p>\[
 A^2=-\omega^2I
-\]<p>可以将偶数项和奇数项分别整理成余弦和正弦级数，最终得到：</p><h1 id=eha-1>[
+\]<p>可以将偶数项和奇数项分别整理成余弦和正弦级数，最终得到：</p>\[
 \boxed{
-e^{hA}</h1><p>\begin{bmatrix}
-\cos(\omega h)&\dfrac{\sin(\omega h)}{\omega}\
+e^{hA} =
+\begin{bmatrix}
+\cos(\omega h)&\dfrac{\sin(\omega h)}{\omega}\\
 -\omega\sin(\omega h)&\cos(\omega h)
 \end{bmatrix}
 }
-]</p><p>这个精确更新矩阵满足：</p>\[
+\]<p>这个精确更新矩阵满足：</p>\[
 \det(e^{hA})=1
 \]<p>其特征值为：</p>\[
 e^{\pm i\omega h}
-\]<p>模长恒为 1，所以解析解始终有界、周期振荡。</p><p>显式 Euler 的更新矩阵为：</p><h1 id=m_eiha>[
-M_E=I+hA</h1><p>\begin{bmatrix}
-1&amp;h\
--\omega^2h&amp;1
+\]<p>模长恒为 1，所以解析解始终有界、周期振荡。</p><p>显式 Euler 的更新矩阵为：</p>\[
+M_E=I+hA =
+\begin{bmatrix}
+1&h\\
+-\omega^2h&1
 \end{bmatrix}
-]</p><p>其行列式：</p>\[
+\]<p>其行列式：</p>\[
 \boxed{
 \det M_E=1+\omega^2h^2>1
 }
@@ -83,9 +87,10 @@ u^TJv
 \]<p>表示它们在 \(q-p\) 相平面中张成的有向面积。</p><p>如果数值更新映射的 Jacobian 为 \(S\)，那么扰动经过一步更新后变成：</p>\[
 u_{\text{new}}=Su,\qquad
 v_{\text{new}}=Sv
-\]<p>更新后的辛面积为：</p><h1 id=sutjsv>[
-(Su)^TJ(Sv)</h1><p>u^TS^TJSv
-]</p><p>如果要求它对任意 \(u,v\) 都与原来相等：</p>\[
+\]<p>更新后的辛面积为：</p>\[
+(Su)^TJ(Sv) =
+u^TS^TJSv
+\]<p>如果要求它对任意 \(u,v\) 都与原来相等：</p>\[
 u^TS^TJSv=u^TJv
 \]<p>就必须有：</p>\[
 \boxed{
@@ -110,16 +115,18 @@ H=T(p)
 \]<p>对应：</p>\[
 \dot q=\frac{\partial T}{\partial p},\qquad
 \dot p=0
-\]<p>所以它可以精确推进：</p><h1 id=q_textnew>[
-q_{\text{new}}</h1><p>q+h\frac{\partial T}{\partial p}
-]</p><p>这一步称为 Drift。</p><p>势能部分：</p>\[
+\]<p>所以它可以精确推进：</p>\[
+q_{\text{new}} =
+q+h\frac{\partial T}{\partial p}
+\]<p>这一步称为 Drift。</p><p>势能部分：</p>\[
 H=V(q)
 \]<p>对应：</p>\[
 \dot q=0,\qquad
 \dot p=-\frac{\partial V}{\partial q}
-\]<p>所以可以精确推进：</p><h1 id=p_textnew>[
-p_{\text{new}}</h1><p>p-h\frac{\partial V}{\partial q}
-]</p><p>这一步称为 Kick。</p><p>对称组合：</p>\[
+\]<p>所以可以精确推进：</p>\[
+p_{\text{new}} =
+p-h\frac{\partial V}{\partial q}
+\]<p>这一步称为 Kick。</p><p>对称组合：</p>\[
 \boxed{
 \text{Kick}_{h/2}
 \rightarrow
@@ -127,9 +134,11 @@ p_{\text{new}}</h1><p>p-h\frac{\partial V}{\partial q}
 \rightarrow
 \text{Kick}_{h/2}
 }
-\]<p>就是 Velocity Verlet。</p><p>由于每个子步骤都是某个哈密顿子系统的精确流，而精确哈密顿流是辛的，辛映射的复合仍然辛，因此整个算法天然保持辛结构。</p><hr><h2 id=4-行星轨道中的辛积分器>4. 行星轨道中的辛积分器</h2><p>考虑单位质量的二维开普勒问题：</p><h1 id=hmathbf-rmathbf-p>[
-H(\mathbf r,\mathbf p)</h1><h2 id=frac12mathbf-p2>\frac12|\mathbf p|^2</h2><p>\frac{\mu}{|\mathbf r|}
-]</p><p>其中：</p>\[
+\]<p>就是 Velocity Verlet。</p><p>由于每个子步骤都是某个哈密顿子系统的精确流，而精确哈密顿流是辛的，辛映射的复合仍然辛，因此整个算法天然保持辛结构。</p><hr><h2 id=4-行星轨道中的辛积分器>4. 行星轨道中的辛积分器</h2><p>考虑单位质量的二维开普勒问题：</p>\[
+H(\mathbf r,\mathbf p) =
+\frac12|\mathbf p|^2 -
+\frac{\mu}{|\mathbf r|}
+\]<p>其中：</p>\[
 \mathbf r=
 \begin{bmatrix}
 x\\y
@@ -145,17 +154,23 @@ T(\mathbf p)=\frac12|\mathbf p|^2
 V(\mathbf r)=-\frac{\mu}{|\mathbf r|}
 \]<p>哈密顿方程是：</p>\[
 \dot{\mathbf r}=\mathbf p
-\]<h1 id=dotmathbf-p>[
-\dot{\mathbf p}</h1><p>-\mu\frac{\mathbf r}{|\mathbf r|^3}
-]</p><p>Velocity Verlet 为：</p><h1 id=mathbf-v_nfrac12>[
-\mathbf v_{n+\frac12}</h1><h2 id=mathbf-v_n>\mathbf v_n</h2><p>\frac h2
+\]\[
+\dot{\mathbf p} =
+-\mu\frac{\mathbf r}{|\mathbf r|^3}
+\]<p>Velocity Verlet 为：</p>\[
+\mathbf v_{n+\frac12} =
+\mathbf v_n -
+\frac h2
 \mu\frac{\mathbf r_n}{|\mathbf r_n|^3}
-]</p><h1 id=mathbf-r_n1>[
-\mathbf r_{n+1}</h1><p>\mathbf r_n+h\mathbf v_{n+\frac12}
-]</p><h1 id=mathbf-v_n1>[
-\mathbf v_{n+1}</h1><h2 id=mathbf-v_nfrac12-1>\mathbf v_{n+\frac12}</h2><p>\frac h2
+\]\[
+\mathbf r_{n+1} =
+\mathbf r_n+h\mathbf v_{n+\frac12}
+\]\[
+\mathbf v_{n+1} =
+\mathbf v_{n+\frac12} -
+\frac h2
 \mu\frac{\mathbf r_{n+1}}{|\mathbf r_{n+1}|^3}
-]</p><p>代码结构：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>State</span>
+\]<p>代码结构：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>State</span>
 </span></span><span style=display:flex><span>{
 </span></span><span style=display:flex><span>    Eigen<span style=color:#f92672>::</span>Vector2d r;
 </span></span><span style=display:flex><span>    Eigen<span style=color:#f92672>::</span>Vector2d v;
@@ -200,23 +215,25 @@ H=T(p)+V(q)
 \boxed{
 L(q,\dot q,t)=T-V
 }
-\]<p>它使用位置和速度。</p><p>运动方程由 Euler-Lagrange 方程给出：</p><h2 id=right>[
+\]<p>它使用位置和速度。</p><p>运动方程由 Euler-Lagrange 方程给出：</p>\[
 \boxed{
 \frac{d}{dt}
 \left(
 \frac{\partial L}{\partial\dot q_i}
-\right)</h2><p>\frac{\partial L}{\partial q_i}
+\right) -
+\frac{\partial L}{\partial q_i}
 =0
 }
-]</p><p>定义共轭动量：</p>\[
+\]<p>定义共轭动量：</p>\[
 \boxed{
 p_i=\frac{\partial L}{\partial\dot q_i}
 }
-\]<p>然后通过 Legendre 变换定义哈密顿量：</p><h1 id=hqpt>[
+\]<p>然后通过 Legendre 变换定义哈密顿量：</p>\[
 \boxed{
-H(q,p,t)</h1><p>\sum_i p_i\dot q_i-L(q,\dot q,t)
+H(q,p,t) =
+\sum_i p_i\dot q_i-L(q,\dot q,t)
 }
-]</p><p>哈密顿方程为：</p>\[
+\]<p>哈密顿方程为：</p>\[
 \boxed{
 \dot q_i=\frac{\partial H}{\partial p_i}
 }

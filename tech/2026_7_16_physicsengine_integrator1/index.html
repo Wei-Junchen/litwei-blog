@@ -21,46 +21,52 @@ x''=f(t,x,x')
 ax''+bx'+cx=0,\qquad a\neq0
 \]<p>定义状态变量：</p>\[
 y_1=x,\qquad y_2=x'
-\]<p>于是：</p><h1 id=endbmatrix>[
+\]<p>于是：</p>\[
 \mathbf y=
 \begin{bmatrix}
-y_1\
+y_1\\
 y_2
-\end{bmatrix}</h1><p>\begin{bmatrix}
-x\
+\end{bmatrix} =
+\begin{bmatrix}
+x\\
 x'
 \end{bmatrix}
-]</p><p>逐个对状态变量求导：</p>\[
+\]<p>逐个对状态变量求导：</p>\[
 y_1'=x'=y_2
 \]<p>原方程可以解出：</p>\[
 x''=-\frac ca x-\frac ba x'
-\]<p>因此：</p><h1 id=y_2>[
-y_2'</h1><p>-\frac ca y_1-\frac ba y_2
-]</p><p>组合起来：</p><h1 id=mathbf-y>[
+\]<p>因此：</p>\[
+y_2' =
+-\frac ca y_1-\frac ba y_2
+\]<p>组合起来：</p>\[
 \boxed{
-\mathbf y'</h1><p>\begin{bmatrix}
-0&amp;1\
+\mathbf y' =
+\begin{bmatrix}
+0&1\\
 -\frac ca&-\frac ba
 \end{bmatrix}
 \mathbf y
 }
-]</p><p>最初我曾尝试直接写：</p><h1 id=beginbmatrix01endbmatrixmathbf-y>[
-\begin{bmatrix}0&amp;1\end{bmatrix}\mathbf y'</h1><p>\begin{bmatrix}-c/a&-b/a\end{bmatrix}\mathbf y
-]</p><p>这个式子本身没有错，因为它确实提取出了：</p>\[
+\]<p>最初我曾尝试直接写：</p>\[
+\begin{bmatrix}0&1\end{bmatrix}\mathbf y' =
+\begin{bmatrix}-c/a&-b/a\end{bmatrix}\mathbf y
+\]<p>这个式子本身没有错，因为它确实提取出了：</p>\[
 y_2'=x''
 \]<p>但左侧的 \([0,1]\) 只是一个选择矩阵，只给出了状态导数中的一个分量。</p><p>缺失的另一行来自状态定义本身：</p>\[
 y_1'=y_2
-\]<p>也就是：</p><h1 id=beginbmatrix10endbmatrixmathbf-y>[
-\begin{bmatrix}1&amp;0\end{bmatrix}\mathbf y'</h1><p>\begin{bmatrix}0&amp;1\end{bmatrix}\mathbf y
-]</p><p>把两行叠起来，左边才成为单位矩阵：</p><h1 id=endbmatrixmathbf-y>[
+\]<p>也就是：</p>\[
+\begin{bmatrix}1&0\end{bmatrix}\mathbf y' =
+\begin{bmatrix}0&1\end{bmatrix}\mathbf y
+\]<p>把两行叠起来，左边才成为单位矩阵：</p>\[
 \begin{bmatrix}
-1&amp;0\
-0&amp;1
-\end{bmatrix}\mathbf y'</h1><p>\begin{bmatrix}
-0&amp;1\
+1&0\\
+0&1
+\end{bmatrix}\mathbf y' =
+\begin{bmatrix}
+0&1\\
 -\frac ca&-\frac ba
 \end{bmatrix}\mathbf y
-]</p><p>这一步揭示了高阶方程降阶的本质：</p><blockquote><p>除了原微分方程本身，还必须把各阶导数之间的定义关系写入状态方程。</p></blockquote><hr><h2 id=2-更高阶方程只是继续扩充状态>2. 更高阶方程只是继续扩充状态</h2><p>考虑三阶方程：</p>\[
+\]<p>这一步揭示了高阶方程降阶的本质：</p><blockquote><p>除了原微分方程本身，还必须把各阶导数之间的定义关系写入状态方程。</p></blockquote><hr><h2 id=2-更高阶方程只是继续扩充状态>2. 更高阶方程只是继续扩充状态</h2><p>考虑三阶方程：</p>\[
 ax'''+bx''+cx'+dx+e=0
 \]<p>定义：</p>\[
 \mathbf y=
@@ -69,35 +75,38 @@ x\\
 x'\\
 x''
 \end{bmatrix}
-\]<p>那么：</p><h1 id=mathbf-y-1>[
-\mathbf y'</h1><p>\begin{bmatrix}
-x&rsquo;\
-x&rsquo;&rsquo;\
-x&rsquo;&rsquo;'
+\]<p>那么：</p>\[
+\mathbf y' =
+\begin{bmatrix}
+x'\\
+x''\\
+x'''
 \end{bmatrix}
-]</p><p>前两行来自状态定义：</p>\[
+\]<p>前两行来自状态定义：</p>\[
 y_1'=y_2,\qquad y_2'=y_3
-\]<p>最后一行由原方程给出：</p><h1 id=x>[
-x&rsquo;''</h1><p>-\frac da x
+\]<p>最后一行由原方程给出：</p>\[
+x''' =
+-\frac da x
 -\frac ca x'
--\frac ba x&rsquo;'
+-\frac ba x''
 -\frac ea
-]</p><p>因此：</p><h1 id=mathbf-y-2>[
+\]<p>因此：</p>\[
 \boxed{
-\mathbf y'</h1><p>\begin{bmatrix}
-0&amp;1&amp;0\
-0&amp;0&amp;1\
+\mathbf y' =
+\begin{bmatrix}
+0&1&0\\
+0&0&1\\
 -\frac da&-\frac ca&-\frac ba
 \end{bmatrix}
 \mathbf y
 +
 \begin{bmatrix}
-0\
-0\
+0\\
+0\\
 -\frac ea
 \end{bmatrix}
 }
-]</p><p>一般地，对于：</p>\[
+\]<p>一般地，对于：</p>\[
 a_nx^{(n)}
 +a_{n-1}x^{(n-1)}
 +\cdots
@@ -118,26 +127,28 @@ x^{(n-1)}
 }
 \]<p>其中 \(A\) 的前 \(n-1\) 行是简单的移位结构，最后一行由原方程系数决定。</p><p>因此，高阶 ODE 并不要求设计“二阶积分器”“三阶积分器”或“六阶积分器”。</p><p>真正统一的积分器只需要处理：</p>\[
 \mathbf y'=\mathbf f(t,\mathbf y)
-\]<p>状态维度由模板参数或向量类型决定。</p><hr><h2 id=3-euler-与-rk4-根本不关心状态有几维>3. Euler 与 RK4 根本不关心状态有几维</h2><p>显式 Euler 的统一形式是：</p><h1 id=mathbf-y_n1>[
+\]<p>状态维度由模板参数或向量类型决定。</p><hr><h2 id=3-euler-与-rk4-根本不关心状态有几维>3. Euler 与 RK4 根本不关心状态有几维</h2><p>显式 Euler 的统一形式是：</p>\[
 \boxed{
-\mathbf y_{n+1}</h1><p>\mathbf y_n+h\mathbf f(t_n,\mathbf y_n)
+\mathbf y_{n+1} =
+\mathbf y_n+h\mathbf f(t_n,\mathbf y_n)
 }
-]</p><p>经典四阶 Runge-Kutta 为：</p>\[
+\]<p>经典四阶 Runge-Kutta 为：</p>\[
 \begin{aligned}
 \mathbf k_1&=\mathbf f(t_n,\mathbf y_n)\\
 \mathbf k_2&=\mathbf f\left(t_n+\frac h2,\mathbf y_n+\frac h2\mathbf k_1\right)\\
 \mathbf k_3&=\mathbf f\left(t_n+\frac h2,\mathbf y_n+\frac h2\mathbf k_2\right)\\
 \mathbf k_4&=\mathbf f(t_n+h,\mathbf y_n+h\mathbf k_3)
 \end{aligned}
-\]<p>然后：</p><h1 id=mathbf-y_n1-1>[
+\]<p>然后：</p>\[
 \boxed{
-\mathbf y_{n+1}</h1><p>\mathbf y_n+
+\mathbf y_{n+1} =
+\mathbf y_n+
 \frac h6
 \left(
 \mathbf k_1+2\mathbf k_2+2\mathbf k_3+\mathbf k_4
 \right)
 }
-]</p><p>这里的 \(\mathbf y\) 可以是二维、三维，也可以是一千维。</p><p>因此 C++ 中更合理的接口是：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>template</span> <span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> State, <span style=color:#66d9ef>typename</span> RHS<span style=color:#f92672>&gt;</span>
+\]<p>这里的 \(\mathbf y\) 可以是二维、三维，也可以是一千维。</p><p>因此 C++ 中更合理的接口是：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>template</span> <span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> State, <span style=color:#66d9ef>typename</span> RHS<span style=color:#f92672>&gt;</span>
 </span></span><span style=display:flex><span>State rk4Step(
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>double</span> t,
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> State<span style=color:#f92672>&amp;</span> y,
@@ -165,21 +176,24 @@ A\mathbf y+\mathbf b(t)
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> A <span style=color:#f92672>*</span> y <span style=color:#f92672>+</span> forcing(t);
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>而：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-cpp data-lang=cpp><span style=display:flex><span>State dydt <span style=color:#f92672>=</span> rhs(t, y);
-</span></span></code></pre></div><p>中，<code>rhs</code> 是计算函数，<code>dydt</code> 是它在当前状态下返回的导数向量。</p><hr><h2 id=5-非线性并不会破坏统一形式>5. 非线性并不会破坏统一形式</h2><p>考虑不做小角度近似的单摆：</p><h1 id=theta>[
-\theta''</h1><p>-\frac gl\sin\theta
-]</p><p>再加入二次阻力：</p><h1 id=theta-1>[
-\theta''</h1><p>-\frac gl\sin\theta
--\gamma\theta&rsquo;|\theta&rsquo;|
-]</p><p>定义：</p>\[
+</span></span></code></pre></div><p>中，<code>rhs</code> 是计算函数，<code>dydt</code> 是它在当前状态下返回的导数向量。</p><hr><h2 id=5-非线性并不会破坏统一形式>5. 非线性并不会破坏统一形式</h2><p>考虑不做小角度近似的单摆：</p>\[
+\theta'' =
+-\frac gl\sin\theta
+\]<p>再加入二次阻力：</p>\[
+\theta'' =
+-\frac gl\sin\theta
+-\gamma\theta'|\theta'|
+\]<p>定义：</p>\[
 y_1=\theta,\qquad y_2=\omega=\theta'
-\]<p>则：</p><h1 id=mathbf-y-3>[
+\]<p>则：</p>\[
 \boxed{
-\mathbf y'</h1><p>\begin{bmatrix}
-y_2\
+\mathbf y' =
+\begin{bmatrix}
+y_2\\
 -\dfrac gl\sin y_1-\gamma y_2|y_2|
 \end{bmatrix}
 }
-]</p><p>虽然它不能再写成固定矩阵：</p>\[
+\]<p>虽然它不能再写成固定矩阵：</p>\[
 \mathbf y'=A\mathbf y
 \]<p>但仍然是完全合法的：</p>\[
 \mathbf y'=\mathbf f(\mathbf y)
@@ -197,13 +211,14 @@ G(t,\mathbf y,z)=0
 \frac{\partial G}{\partial z}\neq0
 \]<p>则根据隐函数定理，局部可以写成：</p>\[
 z=\phi(t,\mathbf y)
-\]<p>此时仍能包装成普通 RHS：</p><h1 id=mathbf-ftmathbf-y>[
-\mathbf f(t,\mathbf y)</h1><p>\begin{bmatrix}
-y_2\
-\vdots\
+\]<p>此时仍能包装成普通 RHS：</p>\[
+\mathbf f(t,\mathbf y) =
+\begin{bmatrix}
+y_2\\
+\vdots\\
 \phi(t,\mathbf y)
 \end{bmatrix}
-]</p><p>只不过每次计算 RHS 时，都需要先通过 Newton 法等方法求解最高阶导数。</p><p>如果：</p>\[
+\]<p>只不过每次计算 RHS 时，都需要先通过 Newton 法等方法求解最高阶导数。</p><p>如果：</p>\[
 \frac{\partial G}{\partial z}\approx0
 \]<p>则会出现：</p><ul><li>根对状态极度敏感；</li><li>多个根合并；</li><li>Newton 迭代失败；</li><li>分支跳跃；</li><li>显式状态表达退化。</li></ul><p>此时更自然的形式是：</p>\[
 \boxed{
@@ -211,10 +226,11 @@ F(t,\mathbf y,\mathbf y')=0
 }
 \]<p>这已经属于隐式 ODE 或 DAE 的范畴，需要后向 Euler、BDF、Radau 等隐式方法。</p><hr><h2 id=7-变系数病态与刚性>7. 变系数、病态与刚性</h2><p>变系数本身不会破坏高阶方程的移位结构。</p><p>例如：</p>\[
 a(t)x'''+b(t)x''+c(t)x'+d(t)x+e(t)=0
-\]<p>状态方程仍然是：</p><h1 id=mathbf-y-4>[
-\mathbf y'</h1><p>\begin{bmatrix}
-0&amp;1&amp;0\
-0&amp;0&amp;1\
+\]<p>状态方程仍然是：</p>\[
+\mathbf y' =
+\begin{bmatrix}
+0&1&0\\
+0&0&1\\
 -\dfrac{d(t)}{a(t)}
 &
 -\dfrac{c(t)}{a(t)}
@@ -223,18 +239,19 @@ a(t)x'''+b(t)x''+c(t)x'+d(t)x+e(t)=0
 \end{bmatrix}\mathbf y
 +
 \begin{bmatrix}
-0\
-0\
+0\\
+0\\
 -\dfrac{e(t)}{a(t)}
 \end{bmatrix}
-]</p><p>真正的问题是最高阶系数是否接近零。</p><p>例如：</p>\[
+\]<p>真正的问题是最高阶系数是否接近零。</p><p>例如：</p>\[
 \varepsilon x''+x'+x=0,\qquad 0<\varepsilon\ll1
-\]<p>化成状态方程后会出现 \(1/\varepsilon\)：</p><h1 id=mathbf-y-5>[
-\mathbf y'</h1><p>\begin{bmatrix}
-0&amp;1\
+\]<p>化成状态方程后会出现 \(1/\varepsilon\)：</p>\[
+\mathbf y' =
+\begin{bmatrix}
+0&1\\
 -\frac1\varepsilon&-\frac1\varepsilon
 \end{bmatrix}\mathbf y
-]</p><p>这会产生相差很大的时间尺度。</p><p>系统中某些模态变化很快，另一些模态变化很慢。这类问题称为刚性问题。</p><p>显式 RK 即使理论精度很高，也可能因为稳定性要求被迫使用极小步长。</p><p>因此：</p>\[
+\]<p>这会产生相差很大的时间尺度。</p><p>系统中某些模态变化很快，另一些模态变化很慢。这类问题称为刚性问题。</p><p>显式 RK 即使理论精度很高，也可能因为稳定性要求被迫使用极小步长。</p><p>因此：</p>\[
 \boxed{
 \text{高阶方程降阶只统一了形式，并没有自动解决刚性与病态}
 }
@@ -250,9 +267,10 @@ C_r\frac{\varepsilon_{\text{mach}}}{h}
 }
 \]<p>第一项随 \(h\) 减小而降低，第二项随 \(h\) 减小而增大。</p><p>因此误差曲线往往是 U 形的：</p><ul><li>步长太大：截断误差主导；</li><li>步长适中：总误差最小；</li><li>步长极小：舍入误差和消去误差主导。</li></ul><p>这意味着：</p><blockquote><p>更小的步长不一定更好，合理步长需要同时考虑稳定性、截断误差和浮点精度。</p></blockquote><hr><h2 id=9-从多质点-ode-到连续介质-pde>9. 从多质点 ODE 到连续介质 PDE</h2><p>设一串质点通过弹簧连接。</p><p>第 \(i\) 个质点的位移为：</p>\[
 x_i(t)
-\]<p>相邻质点平衡间距为 \(a\)。</p><p>内部质点满足：</p><h1 id=mddot-x_i>[
-m\ddot x_i</h1><p>k(x_{i+1}-2x_i+x_{i-1})
-]</p><p>这仍然只是一个大量耦合的 ODE 系统。</p><p>现在定义连续位移场：</p>\[
+\]<p>相邻质点平衡间距为 \(a\)。</p><p>内部质点满足：</p>\[
+m\ddot x_i =
+k(x_{i+1}-2x_i+x_{i-1})
+\]<p>这仍然只是一个大量耦合的 ODE 系统。</p><p>现在定义连续位移场：</p>\[
 u(x,t)
 \]<p>表示位于空间坐标 \(x\) 处的材料点在时刻 \(t\) 的位移。</p><p>第 \(i\) 个质点的平衡位置是：</p>\[
 x=ia
@@ -295,10 +313,11 @@ x_i=i\Delta x
 u_i(t)=u(x_i,t),\qquad v_i(t)=v(x_i,t)
 \]<p>于是：</p>\[
 u_i'=v_i
-\]<h1 id=v_i>[
-v_i'</h1><p>c^2
+\]\[
+v_i' =
+c^2
 \frac{u_{i+1}-2u_i+u_{i-1}}{\Delta x^2}
-]</p><p>将所有空间点拼成一个大状态：</p>\[
+\]<p>将所有空间点拼成一个大状态：</p>\[
 \mathbf Y=
 \begin{bmatrix}
 u_0\\
@@ -343,13 +362,14 @@ x'=f_1(t,x,y,z)\\
 y'=f_2(t,x,y,z)\\
 z'=f_3(t,x,y,z)
 \end{cases}
-\]<p>变成：</p><h1 id=mathbf-y-6>[
-\mathbf Y'</h1><p>\begin{bmatrix}
-f_1\
-f_2\
+\]<p>变成：</p>\[
+\mathbf Y' =
+\begin{bmatrix}
+f_1\\
+f_2\\
 f_3
 \end{bmatrix}
-]</p><h3 id=pde-空间离散>PDE 空间离散</h3>\[
+\]<h3 id=pde-空间离散>PDE 空间离散</h3>\[
 u_{tt}=c^2u_{xx}
 \]<p>变成一个 \(2N\) 维的一阶 ODE 系统。</p><p>因此，真正统一的对象是：</p>\[
 \boxed{
@@ -359,9 +379,10 @@ u_{tt}=c^2u_{xx}
 \mathbf y'=\mathbf f(t,\mathbf y)
 \]<p>或者：</p>\[
 F(t,\mathbf y,\mathbf y')=0
-\]<p>但这并不意味着使用同一个 RK4 就可以可靠地“求解万物”。</p><p>真正需要考虑的还包括：</p><ul><li>模型误差；</li><li>时间离散误差；</li><li>空间离散误差；</li><li>非线性迭代误差；</li><li>舍入误差；</li><li>刚性；</li><li>稳定性；</li><li>收敛性；</li><li>约束漂移；</li><li>守恒律；</li><li>碰撞和事件；</li><li>混沌系统的初值敏感性。</li></ul><p>总误差可以粗略拆成：</p><h1 id=text总误差>[
+\]<p>但这并不意味着使用同一个 RK4 就可以可靠地“求解万物”。</p><p>真正需要考虑的还包括：</p><ul><li>模型误差；</li><li>时间离散误差；</li><li>空间离散误差；</li><li>非线性迭代误差；</li><li>舍入误差；</li><li>刚性；</li><li>稳定性；</li><li>收敛性；</li><li>约束漂移；</li><li>守恒律；</li><li>碰撞和事件；</li><li>混沌系统的初值敏感性。</li></ul><p>总误差可以粗略拆成：</p>\[
 \boxed{
-\text{总误差}</h1><p>\text{模型误差}
+\text{总误差} =
+\text{模型误差}
 +
 \text{离散误差}
 +
@@ -369,7 +390,7 @@ F(t,\mathbf y,\mathbf y')=0
 +
 \text{舍入误差}
 }
-]</p><p>积分器只是整个数值求解链条中的一部分。</p><hr><hr><h2 id=13-本篇总结>13. 本篇总结</h2><p>这一阶段的探索，核心不是某个具体积分公式，而是建立一个统一的建模视角：</p>\[
+\]<p>积分器只是整个数值求解链条中的一部分。</p><hr><hr><h2 id=13-本篇总结>13. 本篇总结</h2><p>这一阶段的探索，核心不是某个具体积分公式，而是建立一个统一的建模视角：</p>\[
 \boxed{
 \text{高阶 ODE}
 \longrightarrow

@@ -29,29 +29,27 @@ ax''+bx'+cx=0,\qquad a\neq0
 \[
 y_1=x,\qquad y_2=x'
 \]&lt;p&gt;于是：&lt;/p&gt;
-&lt;h1 id="endbmatrix"&gt;[
+\[
 \mathbf y=
 \begin{bmatrix}
-y_1\
+y_1\\
 y_2
-\end{bmatrix}&lt;/h1&gt;
-&lt;p&gt;\begin{bmatrix}
-x\
+\end{bmatrix} =
+\begin{bmatrix}
+x\\
 x'
 \end{bmatrix}
-]&lt;/p&gt;
-&lt;p&gt;逐个对状态变量求导：&lt;/p&gt;
+\]&lt;p&gt;逐个对状态变量求导：&lt;/p&gt;
 \[
 y_1'=x'=y_2
 \]&lt;p&gt;原方程可以解出：&lt;/p&gt;
 \[
 x''=-\frac ca x-\frac ba x'
 \]&lt;p&gt;因此：&lt;/p&gt;
-&lt;h1 id="y_2"&gt;[
-y_2'&lt;/h1&gt;
-&lt;p&gt;-\frac ca y_1-\frac ba y_2
-]&lt;/p&gt;
-&lt;p&gt;组合起来：&lt;/p&gt;</description></item><item><title>物理引擎开发-Integrator的探索(2)</title><link>https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/</link><pubDate>Thu, 16 Jul 2026 02:50:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/</guid><description>&lt;h1 id="物理引擎开发-integrator的探索2"&gt;物理引擎开发-Integrator的探索(2)&lt;/h1&gt;
+\[
+y_2' =
+-\frac ca y_1-\frac ba y_2
+\]&lt;p&gt;组合起来：&lt;/p&gt;</description></item><item><title>物理引擎开发-Integrator的探索(2)</title><link>https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/</link><pubDate>Thu, 16 Jul 2026 02:50:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_16_physicsengine_integrator2/</guid><description>&lt;h1 id="物理引擎开发-integrator的探索2"&gt;物理引擎开发-Integrator的探索(2)&lt;/h1&gt;
 &lt;p&gt;上一篇中，我把高阶 ODE、非线性系统和空间离散后的 PDE 统一为：&lt;/p&gt;
 \[
 \mathbf y'=\mathbf f(t,\mathbf y)
@@ -79,37 +77,35 @@ q\\
 v
 \end{bmatrix}
 \]&lt;p&gt;则：&lt;/p&gt;
-&lt;h1 id="mathbf-y"&gt;[
-\mathbf y'&lt;/h1&gt;
-&lt;p&gt;A\mathbf y,\qquad
+\[
+\mathbf y' =
+A\mathbf y,\qquad
 A=
 \begin{bmatrix}
-0&amp;amp;1\
--\omega^2&amp;amp;0
+0&amp;1\\
+-\omega^2&amp;0
 \end{bmatrix}
-]&lt;/p&gt;
-&lt;p&gt;精确解经过时间 \(h\) 的更新为：&lt;/p&gt;
+\]&lt;p&gt;精确解经过时间 \(h\) 的更新为：&lt;/p&gt;
 \[
 \mathbf y(t+h)=e^{hA}\mathbf y(t)
 \]&lt;p&gt;矩阵指数定义为：&lt;/p&gt;
-&lt;h1 id="eha"&gt;[
-e^{hA}&lt;/h1&gt;
-&lt;p&gt;I+hA+\frac{(hA)^2}{2!}
+\[
+e^{hA} =
+I+hA+\frac{(hA)^2}{2!}
 +\frac{(hA)^3}{3!}+\cdots
-]&lt;/p&gt;
-&lt;p&gt;由于：&lt;/p&gt;
+\]&lt;p&gt;由于：&lt;/p&gt;
 \[
 A^2=-\omega^2I
 \]&lt;p&gt;可以将偶数项和奇数项分别整理成余弦和正弦级数，最终得到：&lt;/p&gt;
-&lt;h1 id="eha-1"&gt;[
+\[
 \boxed{
-e^{hA}&lt;/h1&gt;
-&lt;p&gt;\begin{bmatrix}
-\cos(\omega h)&amp;amp;\dfrac{\sin(\omega h)}{\omega}\
--\omega\sin(\omega h)&amp;amp;\cos(\omega h)
+e^{hA} =
+\begin{bmatrix}
+\cos(\omega h)&amp;\dfrac{\sin(\omega h)}{\omega}\\
+-\omega\sin(\omega h)&amp;\cos(\omega h)
 \end{bmatrix}
 }
-]&lt;/p&gt;</description></item><item><title>Linux 是如何理解 SoC 里的 I2C 控制器的</title><link>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</link><pubDate>Wed, 01 Jul 2026 23:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</guid><description>&lt;h1 id="linux-是如何理解-soc-里的-i2c-控制器的"&gt;Linux 是如何理解 SoC 里的 I2C 控制器的&lt;/h1&gt;
+\]&lt;p&gt;这个精确更新矩阵满足：&lt;/p&gt;</description></item><item><title>Linux 是如何理解 SoC 里的 I2C 控制器的</title><link>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</link><pubDate>Wed, 01 Jul 2026 23:00:00 +0800</pubDate><guid>https://litwei.fun/tech/2026_7_1_linux%E5%9C%A8soc%E4%B8%8B%E7%9A%84%E7%A1%AC%E4%BB%B6i2c%E9%A9%B1%E5%8A%A8%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/</guid><description>&lt;h1 id="linux-是如何理解-soc-里的-i2c-控制器的"&gt;Linux 是如何理解 SoC 里的 I2C 控制器的&lt;/h1&gt;
 &lt;p&gt;最近在研究 &lt;em&gt;Sispeed&lt;/em&gt; 的 &lt;em&gt;Licheerv Nano&lt;/em&gt; 中 &lt;em&gt;GC4653&lt;/em&gt; 相机超频CLK到37.125MHz-80fps时，遇到了不少问题，比如VB Pool段错误/VPSS JOB异常归零，于是决定刨根问底，想从底层研究整个初始化以及取帧流程。便开始理解 Linux 设备树、I2C 控制器、&lt;code&gt;/dev/i2c-X&lt;/code&gt; 和内核驱动之间的关系。这个问题一开始看起来很绕，但如果分层看，其实逻辑非常清晰。&lt;/p&gt;
 &lt;h2 id="-目录"&gt;📚 目录&lt;/h2&gt;
 &lt;ol&gt;
