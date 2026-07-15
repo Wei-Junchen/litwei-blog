@@ -96,7 +96,7 @@ def normalize(path: Path) -> bool:
     summary = fm.get("summary", "\"\"")
     cover = fm.get("cover", "\"\"")
 
-    new = "\n".join([
+    front_matter = [
         "---",
         f"title: {quote(title)}",
         f"date: {date}",
@@ -106,6 +106,11 @@ def normalize(path: Path) -> bool:
         f"summary: {summary}",
         f"cover: {cover}",
         f"comments: {comments}",
+    ]
+    if "math" in fm:
+        front_matter.append(f"math: {fm['math']}")
+
+    new = "\n".join(front_matter + [
         "---",
         "",
         body.rstrip(),

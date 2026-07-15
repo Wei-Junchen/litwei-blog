@@ -10,6 +10,16 @@ timeZone = 'Asia/Shanghai'
 [params]
   author = 'Litwei'
   description = '技术、游戏、生活与项目记录。'
+  math = false
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)']]
 
 [outputs]
   home = ['HTML', 'RSS', 'JSON']

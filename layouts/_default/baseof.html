@@ -7,6 +7,9 @@
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} | {{ site.Title }}{{ end }}</title>
   <link rel="icon" href="{{ "favicon.svg?v=20260702-6" | relURL }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ "css/site.css?v=20260703-5" | relURL }}">
+  {{ if .Param "math" }}
+    {{ partialCached "math.html" . }}
+  {{ end }}
 </head>
 <body>
   <canvas class="matrix-rain" aria-hidden="true"></canvas>
